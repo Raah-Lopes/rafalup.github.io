@@ -1,0 +1,205 @@
+    title {
+        display: none;
+    }
+    
+    header {
+        background-color: #7bb8d7;
+        position: fixed;
+        top: 0;
+        left: 0px;
+        height: 100px;
+        width: 100%;
+        z-index: 1;
+        /*elemento responsavel pela posição do elemento em relação aos outros*/
+    }
+    
+    body,
+    html {
+        height: 100%;
+        /*text-align: center; */
+    }
+    
+    .div-margin {
+        margin-top: 100px;
+        min-height: 100%;
+    }
+    /* MENU DE NAVEGACAO*/
+    
+    nav {
+        position: fixed;
+        /*relative*/
+        top: 50px;
+        left: 500px;
+        right: 0px;
+        text-decoration: none;
+    }
+    
+    a {
+        text-decoration: none;
+        color: inherit;
+        /*color:inherit: Faz o elemento herdar a cor do "pai"*/
+    }
+    /* link que ainda não foi visitado */
+    
+    a:link {
+        color: black;
+    }
+    /* link que foi visitado */
+    
+    a:visited {
+        color: rgb(49, 8, 73);
+    }
+    /* mouse over */
+    
+    a:hover {
+        color: rgb(255, 255, 255);
+    }
+    /* link selecionado */
+    
+    a:active {
+        color: rgb(238, 230, 161);
+    }
+    
+    #conosco {
+        margin-top: 120px;
+        text-align: center;
+        background-color: rgb(48, 28, 24);
+        color: tomato;
+    }
+    
+    .botao {
+        /*border: 2px solid #fff;*/
+        /*float: center;*/
+        width: 20%;
+        height: 30px;
+        color: rgb(0, 0, 0);
+        font-size: 20px;
+        /* background-color: #61acd1; */
+        font-weight: bold;
+        border-radius: 5px;
+        /*Arredonda a borda*/
+        display: inline-block;
+    }
+    
+    .botao:hover {
+        /* background-color: #8bc9e9; */
+        /* width: 15%;
+            height: 30px;
+            font-size: 25px;*/
+        /*color: #ffffff; */
+    }
+    
+    #logomarca {
+        margin-top: 6px;
+        margin-left: 20px;
+        margin-bottom: 0px;
+        width: 240px;
+        /*130,190*/
+    }
+    
+    #perfil {
+        top: 311px;
+        left: 167px;
+        width: 300px;
+        height: 470px;
+    }
+    
+    #sobretexto {
+        top: 321px;
+        left: 772px;
+        width: 530px;
+        height: 456px;
+        text-align: center;
+    }
+    /* GALERIA*/
+    
+    div.box {
+        width: 300px;
+        height: 300px;
+        display: inline-flex;
+    }
+    
+    #GALERIA {
+        text-align: center;
+    }
+    
+    #SOBRE {
+        text-align: center;
+        padding: 20px;
+        font-family: Helvetica;
+        position: relative;
+        margin-top: 300px;
+        z-index: 0;
+    }
+    /* #perfil {
+            width: 180%;
+            height: 180%;
+        } */
+    
+    #INFORMACAO {
+        height: 400px;
+        width: 100%;
+        margin-top: 100px;
+        position: relative;
+        text-align: center;
+    }
+    
+    p {
+        margin-top: 100px;
+    }
+    /*PAGINA FORMULARIO */
+    
+    table td {
+        border: 1px solid #fff;
+        width: 30%;
+        height: 30px;
+        text-align: center;
+        font-size: 15px;
+        background-color: #7bb8d7;
+    }
+    
+    .tituloTabela {
+        font-family: sans-serif;
+        font-size: 20px;
+        background-color: #d14949;
+        border-color: #d14949;
+        color: white;
+    }
+    
+    #tabela {
+        margin-top: 25%;
+        margin-bottom: 25%;
+        width: 50%;
+        position: relative;
+        display: inline-block;
+        margin-left: 37%;
+        background-color: rgb(58, 40, 27);
+        ;
+    }
+    
+    .tabcontent {
+        background-color: rgb(58, 44, 44);
+        color: white;
+    }
+    /*FOOTER COMEÇO*/
+    
+    .sociais {
+        width: 30px;
+        height: 30px;
+        margin-bottom: 5px;
+    }
+    
+    .sociais:hover {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 5px;
+    }
+    
+    footer {
+        text-align: center;
+        background-color: #7bb8d7;
+    }
+    /*inline-block
+inline
+ block  */
+    /* text-decoration: none */

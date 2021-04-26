@@ -1,0 +1,334 @@
+.mediaViewInfo {
+	--web-view-name: Web 1920 – 1;
+	--web-view-id: Web_1920__1;
+	--web-scale-on-resize: true;
+	--web-enable-deep-linking: true;
+}
+:root {
+	--web-view-ids: Web_1920__1;
+}
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	border: none;
+}
+#Web_1920__1 {
+	position: absolute;
+	width: 1920px;
+	height: 3231px;
+	background-color: rgba(123,184,215,1);
+	overflow: hidden;
+	--web-view-name: Web 1920 – 1;
+	--web-view-id: Web_1920__1;
+	--web-scale-on-resize: true;
+	--web-enable-deep-linking: true;
+}
+#vILAREJO_pINTADO {
+	position: absolute;
+	width: 2218px;
+	height: 1662px;
+	left: -174px;
+	top: 0px;
+	overflow: visible;
+}
+#Caminho_1 {
+	filter: blur(40px);
+	fill: rgba(255,255,255,1);
+	stroke: rgba(112,112,112,1);
+	stroke-width: 1px;
+	stroke-linejoin: miter;
+	stroke-linecap: butt;
+	stroke-miterlimit: 4;
+	shape-rendering: auto;
+}
+.Caminho_1 {
+	overflow: visible;
+	position: absolute;
+	width: 1920px;
+	height: 3125px;
+	left: 0px;
+	top: 0px;
+	transform: matrix(1,0,0,1,0,0);
+}
+#SOBRE__ABOUT_ {
+	left: 766px;
+	top: 213px;
+	position: absolute;
+	overflow: visible;
+	width: 340px;
+	white-space: nowrap;
+	text-align: left;
+	font-family: Segoe UI Historic;
+	font-style: normal;
+	font-weight: normal;
+	font-size: 47px;
+	color: rgba(112,112,112,1);
+}
+#Lorem_ipsum_dolor_sit_amet_con {
+	left: 772px;
+	top: 321px;
+	position: absolute;
+	overflow: hidden;
+	width: 684px;
+	height: 456px;
+	text-align: center;
+	font-family: Segoe UI Historic;
+	font-style: normal;
+	font-weight: normal;
+	font-size: 38px;
+	color: rgba(112,112,112,1);
+}
+#perfil {
+	filter: drop-shadow(0px 3px 6px rgba(0, 0, 0, 0.161));
+	position: absolute;
+	width: 475px;
+	height: 475px;
+	left: 167px;
+	top: 311px;
+	overflow: visible;
+}
+#GALERIA__GALLERY {
+	left: 735px;
+	top: 1182px;
+	position: absolute;
+	overflow: visible;
+	width: 402px;
+	white-space: nowrap;
+	text-align: left;
+	font-family: Segoe UI Historic;
+	font-style: normal;
+	font-weight: normal;
+	font-size: 47px;
+	color: rgba(112,112,112,1);
+}
+#Menina1222 {
+	position: absolute;
+	width: 270px;
+	height: 367px;
+	left: 390px;
+	top: 1336px;
+	overflow: visible;
+}
+#Menina1222_n {
+	position: absolute;
+	width: 270px;
+	height: 367px;
+	left: 680px;
+	top: 1336px;
+	overflow: visible;
+}
+#Menina1222_o {
+	position: absolute;
+	width: 270px;
+	height: 367px;
+	left: 970px;
+	top: 1336px;
+	overflow: visible;
+}
+#Menina1222_p {
+	position: absolute;
+	width: 270px;
+	height: 367px;
+	left: 1260px;
+	top: 1337px;
+	overflow: visible;
+}
+#Menina1222_q {
+	position: absolute;
+	width: 270px;
+	height: 367px;
+	left: 390px;
+	top: 1718px;
+	overflow: visible;
+}
+#Menina1222_r {
+	position: absolute;
+	width: 270px;
+	height: 367px;
+	left: 680px;
+	top: 1717px;
+	overflow: visible;
+}
+#Menina1222_s {
+	position: absolute;
+	width: 270px;
+	height: 367px;
+	left: 970px;
+	top: 1717px;
+	overflow: visible;
+}
+#Menina1222_t {
+	position: absolute;
+	width: 270px;
+	height: 367px;
+	left: 1260px;
+	top: 1717px;
+	overflow: visible;
+}
+#Linha_1 {
+	fill: transparent;
+	stroke: rgba(255,255,255,1);
+	stroke-width: 3px;
+	stroke-linejoin: miter;
+	stroke-linecap: butt;
+	stroke-miterlimit: 4;
+	shape-rendering: auto;
+}
+.Linha_1 {
+	overflow: visible;
+	position: absolute;
+	width: 1061px;
+	height: 3px;
+	left: 404.5px;
+	top: 1119.5px;
+	transform: matrix(1,0,0,1,0,0);
+}
+#INFORMAES__INFORMATION {
+	left: 592px;
+	top: 2241px;
+	position: absolute;
+	overflow: visible;
+	width: 672px;
+	white-space: nowrap;
+	text-align: left;
+	font-family: Segoe UI Historic;
+	font-style: normal;
+	font-weight: normal;
+	font-size: 47px;
+	color: rgba(112,112,112,1);
+}
+#Linha_2 {
+	fill: transparent;
+	stroke: rgba(255,255,255,1);
+	stroke-width: 3px;
+	stroke-linejoin: miter;
+	stroke-linecap: butt;
+	stroke-miterlimit: 4;
+	shape-rendering: auto;
+}
+.Linha_2 {
+	overflow: visible;
+	position: absolute;
+	width: 1061px;
+	height: 3px;
+	left: 404.5px;
+	top: 2165.5px;
+	transform: matrix(1,0,0,1,0,0);
+}
+#Retngulo_2 {
+	fill: rgba(255,255,255,1);
+	stroke: rgba(112,112,112,1);
+	stroke-width: 1px;
+	stroke-linejoin: miter;
+	stroke-linecap: butt;
+	stroke-miterlimit: 4;
+	shape-rendering: auto;
+}
+.Retngulo_2 {
+	position: absolute;
+	overflow: visible;
+	width: 1984px;
+	height: 108px;
+	left: -48px;
+	top: 3127px;
+}
+#Desenvolvido_por__Raphael_Lope {
+	left: 1362px;
+	top: 3160px;
+	position: absolute;
+	overflow: visible;
+	width: 479px;
+	white-space: nowrap;
+	text-align: left;
+	font-family: Segoe UI Historic;
+	font-style: normal;
+	font-weight: normal;
+	font-size: 32px;
+	color: rgba(112,112,112,1);
+}
+#Retngulo_1 {
+	fill: rgba(123,184,215,1);
+	stroke: rgba(112,112,112,1);
+	stroke-width: 1px;
+	stroke-linejoin: miter;
+	stroke-linecap: butt;
+	stroke-miterlimit: 4;
+	shape-rendering: auto;
+}
+.Retngulo_1 {
+	position: absolute;
+	overflow: visible;
+	width: 1920px;
+	height: 78px;
+	left: 0px;
+	top: 0px;
+}
+#INICIO {
+	left: 694px;
+	top: 26px;
+	position: absolute;
+	overflow: visible;
+	width: 94px;
+	white-space: nowrap;
+	text-align: left;
+	font-family: Segoe UI Historic;
+	font-style: normal;
+	font-weight: normal;
+	font-size: 32px;
+	color: rgba(112,112,112,1);
+}
+#GALERIA {
+	left: 884px;
+	top: 26px;
+	position: absolute;
+	overflow: visible;
+	width: 123px;
+	white-space: nowrap;
+	text-align: left;
+	font-family: Segoe UI Historic;
+	font-style: normal;
+	font-weight: normal;
+	font-size: 32px;
+	color: rgba(112,112,112,1);
+}
+#INFORMAES {
+	left: 1108px;
+	top: 26px;
+	position: absolute;
+	overflow: visible;
+	width: 219px;
+	white-space: nowrap;
+	text-align: left;
+	font-family: Segoe UI Historic;
+	font-style: normal;
+	font-weight: normal;
+	font-size: 32px;
+	color: rgba(112,112,112,1);
+}
+#logoraphael_vectorized {
+	position: absolute;
+	width: 45px;
+	height: 67px;
+	left: 525px;
+	top: 11px;
+	overflow: visible;
+}
+#Linha_3 {
+	fill: transparent;
+	stroke: rgba(112,112,112,1);
+	stroke-width: 1px;
+	stroke-linejoin: miter;
+	stroke-linecap: butt;
+	stroke-miterlimit: 4;
+	shape-rendering: auto;
+}
+.Linha_3 {
+	overflow: visible;
+	position: absolute;
+	width: 1208px;
+	height: 1px;
+	left: 376px;
+	top: 2152px;
+	transform: matrix(1,0,0,1,0,0);
+}
