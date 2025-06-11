@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CharGen Studio - Versão Offline</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+            color: #f3f4f6; /* text-gray-100 */
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937; /* bg-gray-800 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5; /* bg-indigo-600 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6366f1; /* bg-indigo-500 */
+        }
+        select, input[type="text"], input[type="password"], input[type="email"], input[type="number"], textarea {
+            background-color: #374151; /* bg-gray-700 */
+            border-color: #4b5563; /* border-gray-600 */
+            color: #f3f4f6; /* text-gray-100 */
+            border-radius: 0.5rem; /* rounded-lg */
+        }
+        select:focus, input:focus, textarea:focus {
+            border-color: #6366f1; /* border-indigo-500 */
+            box-shadow: 0 0 0 2px #4f46e5; /* ring-indigo-600 */
+        }
+        .custom-checkbox {
+            appearance: none;
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 0.25rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+        .custom-checkbox:checked {
+            background-color: #6366f1;
+            border-color: #4f46e5;
+        }
+        .custom-checkbox:checked::after {
+            content: '✔';
+            font-size: 0.8rem;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .section-arrow {
+            transition: transform 0.3s ease;
+        }
+        .section-open .section-arrow {
+            transform: rotate(180deg);
+        }
+        input[type="color"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            padding: 0;
+            background-color: transparent;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+            border-radius: 0.5rem;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: 1px solid #4b5563;
+            border-radius: 0.5rem;
+        }
+        input[type="color"]::-moz-color-swatch {
+            border: 1px solid #4b5563;
+            border-radius: 0.5rem;
+        }
+        /* Aba Lateral de Rascunho */
+        #rascunhoSidebar {
+            transition: transform 0.3s ease-in-out;
+            z-index: 60; 
+        }
+        #openRascunhoBtn {
+            z-index: 55; 
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        #openRascunhoBtn.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 p-4 md:p-8">
+
+    <!-- Botão para abrir a aba de Rascunho -->
+    <button id="openRascunhoBtn" class="fixed top-1/2 right-0 transform -translate-y-1/2 bg-violet-600 hover:bg-violet-700 text-white p-3 rounded-l-lg shadow-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+        </svg>
+    </button>
+
+    <!-- Aba Lateral de Rascunho -->
+    <div id="rascunhoSidebar" class="fixed top-0 right-0 h-full w-full sm:w-80 md:w-96 bg-slate-800 shadow-xl transform translate-x-full p-4 flex flex-col border-l border-slate-700">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-orbitron text-lg text-violet-300">Rascunho de Ideias</h3>
+            <button id="closeRascunhoBtn" class="text-slate-300 hover:text-white p-1 rounded-md hover:bg-slate-700">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <textarea id="rascunhoTextarea" class="w-full flex-grow p-2 bg-slate-900 border-slate-700 rounded-md text-slate-200 text-sm mb-4 resize-none" placeholder="Digite suas ideias ou cole textos aqui..."></textarea>
+        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+            <button id="addRascunhoToPromptBtn" class="flex-1 bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2 px-3 rounded-lg text-sm">Adicionar ao Prompt Final</button>
+            <button id="clearRascunhoBtn" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2 px-3 rounded-lg text-sm">Limpar Rascunho</button>
+        </div>
+    </div>
+
+
+    <div class="container mx-auto max-w-5xl">
+        <header class="text-center mb-10">
+            <h1 class="font-orbitron text-4xl md:text-5xl font-bold text-violet-400">
+                CharGen <span class="text-violet-600">Studio</span> <span class="text-sm text-sky-400">(Offline)</span>
+            </h1>
+            <p class="text-slate-400 mt-2">Crie prompts detalhados para seus personagens.</p>
+        </header>
+
+        <div id="toast-notification" class="fixed bottom-5 right-5 bg-violet-600 text-white py-3 px-6 rounded-lg shadow-xl text-sm z-50 transition-opacity duration-300 opacity-0">
+            Mensagem da notificação.
+        </div>
+
+        <!-- Seção de Análise de Imagem Removida -->
+
+        <form id="characterForm" class="space-y-6">
+            <div id="section-identidade" class="bg-slate-800 rounded-lg shadow-xl">
+                <div class="section-header p-4 cursor-pointer flex justify-between items-center rounded-t-lg hover:bg-slate-700/50 transition-colors">
+                    <h2 class="font-orbitron text-xl text-violet-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-3 text-violet-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                        </svg>
+                        Identidade Central
+                    </h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 section-arrow text-slate-400">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </div>
+                <div class="section-content p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label for="nomePersonagem" class="block text-sm font-medium text-slate-300 mb-1">Nome do Personagem</label>
+                        <input type="text" id="nomePersonagem" name="nomePersonagem" class="w-full p-2">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="caracteristicasFisicas" class="block text-sm font-medium text-slate-300 mb-1">Características Físicas Essenciais</label>
+                        <textarea id="caracteristicasFisicas" name="caracteristicasFisicas" rows="3" class="w-full p-2"></textarea>
+                    </div>
+                    <div>
+                        <label for="personalidade" class="block text-sm font-medium text-slate-300 mb-1">Personalidade (Palavras-chave)</label>
+                         <input type="text" id="personalidade" name="personalidade" class="w-full p-2">
+                    </div>
+                    <div class="md:col-span-2"> <label for="personalidadeDetalhada" class="block text-sm font-medium text-slate-300 mb-1 mt-2">Personalidade Detalhada (Manual)</label>
+                        <textarea id="personalidadeDetalhada" name="personalidadeDetalhada" rows="4" class="w-full p-2" placeholder="Descreva a personalidade em detalhes aqui..."></textarea>
+                    </div>
+                    <div>
+                        <label for="genero" class="block text-sm font-medium text-slate-300 mb-1">Gênero</label>
+                        <select id="genero" name="genero" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="racaEspecie" class="block text-sm font-medium text-slate-300 mb-1">Raça/Espécie</label>
+                        <select id="racaEspecie" name="racaEspecie" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="arquetipo" class="block text-sm font-medium text-slate-300 mb-1">Arquétipo</label>
+                        <select id="arquetipo" name="arquetipo" class="w-full p-2"></select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="humorEmocao" class="block text-sm font-medium text-slate-300 mb-1">Humor/Emoção Geral da Cena</label>
+                        <select id="humorEmocao" name="humorEmocao" class="w-full p-2"></select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-aparencia" class="bg-slate-800 rounded-lg shadow-xl">
+                <div class="section-header p-4 cursor-pointer flex justify-between items-center rounded-t-lg hover:bg-slate-700/50 transition-colors">
+                    <h2 class="font-orbitron text-xl text-violet-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-3 text-violet-400">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.39m3.421 3.415a3 3 0 0 0 5.78-1.128 2.25 2.25 0 0 1 2.4-2.245 4.5 4.5 0 0 0-8.4 2.245c0 .399.078.78.22 1.128Zm0 0l3.388 1.62m-5.043-.025a15.994 15.994 0 0 1-1.622-3.39m3.421 3.415Z" />
+                        </svg>
+                        Aparência Detalhada
+                    </h2>
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 section-arrow text-slate-400">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </div>
+                <div class="section-content p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div>
+                        <label for="tipoCorpo" class="block text-sm font-medium text-slate-300 mb-1">Tipo de Corpo</label>
+                        <select id="tipoCorpo" name="tipoCorpo" class="w-full p-2"></select>
+                    </div>
+                    <div class="flex items-end space-x-2">
+                        <div class="flex-grow">
+                            <label for="corPele" class="block text-sm font-medium text-slate-300 mb-1">Cor da Pele</label>
+                            <input type="text" id="corPele" name="corPele" class="w-full p-2">
+                        </div>
+                        <input type="color" id="corPelePicker" name="corPelePicker" class="h-10 w-10">
+                    </div>
+                    <div>
+                        <label for="texturaPele" class="block text-sm font-medium text-slate-300 mb-1">Textura da Pele/Corpo</label>
+                        <select id="texturaPele" name="texturaPele" class="w-full p-2"></select>
+                    </div>
+                     <div class="flex items-end space-x-2">
+                        <div class="flex-grow">
+                            <label for="corCabelo" class="block text-sm font-medium text-slate-300 mb-1">Cor do Cabelo</label>
+                            <input type="text" id="corCabelo" name="corCabelo" class="w-full p-2">
+                        </div>
+                        <input type="color" id="corCabeloPicker" name="corCabeloPicker" class="h-10 w-10">
+                    </div>
+                    <div>
+                        <label for="penteado" class="block text-sm font-medium text-slate-300 mb-1">Penteado</label>
+                        <select id="penteado" name="penteado" class="w-full p-2"></select>
+                    </div>
+                     <div class="flex items-end space-x-2">
+                        <div class="flex-grow">
+                            <label for="corOlhos" class="block text-sm font-medium text-slate-300 mb-1">Cor dos Olhos</label>
+                            <input type="text" id="corOlhos" name="corOlhos" class="w-full p-2">
+                        </div>
+                        <input type="color" id="corOlhosPicker" name="corOlhosPicker" class="h-10 w-10">
+                    </div>
+                    <div>
+                        <label for="qtdOlhos" class="block text-sm font-medium text-slate-300 mb-1">Qtd. Olhos</label>
+                        <input type="text" id="qtdOlhos" name="qtdOlhos" class="w-full p-2" placeholder="Ex: Dois, Três, Muitos">
+                    </div>
+                    <div>
+                        <label for="qtdBracos" class="block text-sm font-medium text-slate-300 mb-1">Qtd. Braços</label>
+                        <input type="text" id="qtdBracos" name="qtdBracos" class="w-full p-2" placeholder="Ex: Dois, Quatro">
+                    </div>
+                    <div>
+                        <label for="qtdPernas" class="block text-sm font-medium text-slate-300 mb-1">Qtd. Pernas</label>
+                        <input type="text" id="qtdPernas" name="qtdPernas" class="w-full p-2" placeholder="Ex: Duas, Nenhuma (serpente)">
+                    </div>
+                    <div>
+                        <label for="tipoAsas" class="block text-sm font-medium text-slate-300 mb-1">Tipo de Asas</label>
+                        <select id="tipoAsas" name="tipoAsas" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="tipoCauda" class="block text-sm font-medium text-slate-300 mb-1">Tipo de Cauda</label>
+                        <select id="tipoCauda" name="tipoCauda" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="tipoChifres" class="block text-sm font-medium text-slate-300 mb-1">Tipo de Chifres</label>
+                        <select id="tipoChifres" name="tipoChifres" class="w-full p-2"></select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-papel-vestimenta" class="bg-slate-800 rounded-lg shadow-xl">
+                <div class="section-header p-4 cursor-pointer flex justify-between items-center rounded-t-lg hover:bg-slate-700/50 transition-colors">
+                    <h2 class="font-orbitron text-xl text-violet-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-3 text-violet-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.122 2.122l7.81-7.81" />
+                        </svg>
+                        Papel e Vestimenta
+                    </h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 section-arrow text-slate-400">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </div>
+                <div class="section-content p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style="display: none;">
+                    <div>
+                        <label for="profissao" class="block text-sm font-medium text-slate-300 mb-1">Profissão/Função</label>
+                        <select id="profissao" name="profissao" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="vestimentaPrincipal" class="block text-sm font-medium text-slate-300 mb-1">Vestimenta Principal</label>
+                        <select id="vestimentaPrincipal" name="vestimentaPrincipal" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="armadura" class="block text-sm font-medium text-slate-300 mb-1">Armadura</label>
+                        <select id="armadura" name="armadura" class="w-full p-2"></select>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="section-equipamentos" class="bg-slate-800 rounded-lg shadow-xl">
+                <div class="section-header p-4 cursor-pointer flex justify-between items-center rounded-t-lg hover:bg-slate-700/50 transition-colors">
+                    <h2 class="font-orbitron text-xl text-violet-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-3 text-violet-400">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.664 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.631 5.631L21.25 9.5l-5.208-5.209L9.5 11.042l5.63 5.63Z" />
+                        </svg>
+                        Equipamentos, Montarias e Companheiros
+                    </h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 section-arrow text-slate-400">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </div>
+                <div class="section-content p-6 grid grid-cols-1 md:grid-cols-2 gap-6" style="display: none;">
+                    <div>
+                        <label for="armas" class="block text-sm font-medium text-slate-300 mb-1">Armas</label>
+                        <select id="armas" name="armas" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="objetosChave" class="block text-sm font-medium text-slate-300 mb-1">Objetos Chave</label>
+                         <input type="text" id="objetosChave" name="objetosChave" class="w-full p-2">
+                    </div>
+                    <div>
+                        <label for="montaria" class="block text-sm font-medium text-slate-300 mb-1">Montaria</label>
+                        <select id="montaria" name="montaria" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="companheiro" class="block text-sm font-medium text-slate-300 mb-1">Companheiro</label>
+                        <select id="companheiro" name="companheiro" class="w-full p-2"></select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Acessórios/Itens</label>
+                        <div id="acessoriosItens" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-2 bg-slate-700/50 rounded-md"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-estilo-visual" class="bg-slate-800 rounded-lg shadow-xl">
+                <div class="section-header p-4 cursor-pointer flex justify-between items-center rounded-t-lg hover:bg-slate-700/50 transition-colors">
+                    <h2 class="font-orbitron text-xl text-violet-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-3 text-violet-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672Zm-7.518-.267A8.25 8.25 0 1 1 20.25 10.5M8.288 14.212A5.25 5.25 0 1 1 17.25 10.5" />
+                        </svg>
+                        Composição e Estilo Visual
+                    </h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 section-arrow text-slate-400">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </div>
+                <div class="section-content p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style="display: none;">
+                    <div>
+                        <label for="inspiracaoArtista" class="block text-sm font-medium text-slate-300 mb-1">Inspiração em Artista</label>
+                        <select id="inspiracaoArtista" name="inspiracaoArtista" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="movimentoArtistico" class="block text-sm font-medium text-slate-300 mb-1">Movimento Artístico</label>
+                        <select id="movimentoArtistico" name="movimentoArtistico" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="estiloLiterario" class="block text-sm font-medium text-slate-300 mb-1">Estilo Literário (Tom/Atmosfera)</label>
+                        <select id="estiloLiterario" name="estiloLiterario" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="enquadramentoCamera" class="block text-sm font-medium text-slate-300 mb-1">Enquadramento de Câmera</label>
+                        <select id="enquadramentoCamera" name="enquadramentoCamera" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="estiloLente" class="block text-sm font-medium text-slate-300 mb-1">Estilo de Lente</label>
+                        <select id="estiloLente" name="estiloLente" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="efeitosVisuais" class="block text-sm font-medium text-slate-300 mb-1">Efeitos Visuais</label>
+                        <select id="efeitosVisuais" name="efeitosVisuais" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="iluminacaoAtmosfera" class="block text-sm font-medium text-slate-300 mb-1">Iluminação/Atmosfera</label>
+                        <select id="iluminacaoAtmosfera" name="iluminacaoAtmosfera" class="w-full p-2"></select>
+                    </div>
+                    <div class="flex items-end space-x-2">
+                        <div class="flex-grow">
+                            <label for="paletaCoresDescricao" class="block text-sm font-medium text-slate-300 mb-1">Paleta de Cores (Descrição)</label>
+                            <input type="text" id="paletaCoresDescricao" name="paletaCoresDescricao" class="w-full p-2">
+                        </div>
+                        <input type="color" id="paletaCoresPicker" name="paletaCoresPicker" class="h-10 w-10">
+                    </div>
+                    <div class="md:col-span-2 lg:col-span-3">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Estilos Artísticos (sugestão: até 3)</label>
+                        <div id="estilosArtisticos" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-2 bg-slate-700/50 rounded-md"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-narrativa" class="bg-slate-800 rounded-lg shadow-xl">
+                <div class="section-header p-4 cursor-pointer flex justify-between items-center rounded-t-lg hover:bg-slate-700/50 transition-colors">
+                    <h2 class="font-orbitron text-xl text-violet-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-3 text-violet-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                        </svg>
+                        Narrativa e Expressão
+                    </h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 section-arrow text-slate-400">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </div>
+                <div class="section-content p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style="display: none;">
+                    <div>
+                        <label for="temaGeral" class="block text-sm font-medium text-slate-300 mb-1">Tema Geral</label>
+                        <select id="temaGeral" name="temaGeral" class="w-full p-2"></select>
+                    </div>
+                    <div class="md:col-span-2 lg:col-span-1">
+                        <label for="cenarioDetalhado" class="block text-sm font-medium text-slate-300 mb-1">Cenário Detalhado</label>
+                        <select id="cenarioDetalhado" name="cenarioDetalhado" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="acaoPose" class="block text-sm font-medium text-slate-300 mb-1">Ação/Pose</label>
+                        <select id="acaoPose" name="acaoPose" class="w-full p-2"></select>
+                    </div>
+                    <div>
+                        <label for="expressaoFacial" class="block text-sm font-medium text-slate-300 mb-1">Expressão Facial</label>
+                        <select id="expressaoFacial" name="expressaoFacial" class="w-full p-2"></select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-desenvolvimento-ia" class="bg-slate-800 rounded-lg shadow-xl">
+                <div class="section-header p-4 cursor-pointer flex justify-between items-center rounded-t-lg hover:bg-slate-700/50 transition-colors">
+                    <h2 class="font-orbitron text-xl text-violet-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-3 text-violet-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
+                        </svg>
+                        Desenvolvimento (Manual)
+                    </h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 section-arrow text-slate-400">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </div>
+                <div class="section-content p-6 space-y-4" style="display: none;">
+                    <div>
+                        <label for="historiaFundoGerada" class="block text-sm font-medium text-slate-300 mb-1">História de Fundo</label>
+                        <textarea id="historiaFundoGerada" name="historiaFundoGerada" rows="6" class="w-full p-2" placeholder="Escreva a história de fundo do personagem aqui..."></textarea>
+                    </div>
+                    <hr class="border-slate-700 my-4">
+                     <div>
+                        <label for="historiaReviravolta" class="block text-sm font-medium text-slate-300 mb-1">Reviravolta/Segredo</label>
+                        <textarea id="historiaReviravolta" name="historiaReviravolta" rows="4" class="w-full p-2" placeholder="Adicione um segredo ou reviravolta na história..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-extras" class="bg-slate-800 rounded-lg shadow-xl">
+                <div class="section-header p-4 cursor-pointer flex justify-between items-center rounded-t-lg hover:bg-slate-700/50 transition-colors">
+                    <h2 class="font-orbitron text-xl text-violet-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-3 text-violet-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                        Extras
+                    </h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 section-arrow text-slate-400">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </div>
+                <div class="section-content p-6" style="display: none;">
+                    <label for="promptNegativo" class="block text-sm font-medium text-slate-300 mb-1">Prompt Negativo (O que EVITAR)</label>
+                    <input type="text" id="promptNegativo" name="promptNegativo" class="w-full p-2" placeholder="Ex: baixa qualidade, deformado, texto, marca d'água">
+                </div>
+            </div>
+        </form>
+
+        <div class="mt-8 p-6 bg-slate-800 rounded-lg shadow-xl">
+            <h3 class="font-orbitron text-2xl text-violet-300 mb-6 text-center">Gerenciamento e Ações</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                <div class="flex flex-col space-y-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Salvar/Carregar Personagem</label>
+                    <button id="saveCharacterTxtBtn" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Salvar Personagem (.txt)</button>
+                    <button id="loadCharacterTxtBtn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Carregar Personagem (.txt)</button>
+                    <input type="file" id="loadCharacterFileInput" class="hidden" accept=".txt">
+                </div>
+                <div>
+                    <label for="presets" class="block text-sm font-medium text-slate-300 mb-1">Pacotes Temáticos/Presets</label>
+                    <select id="presets" class="w-full p-2 mb-2"></select>
+                    <button id="applyPresetBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Aplicar Preset</button>
+                </div>
+                <div class="flex flex-col space-y-2 justify-end sm:justify-start pt-0 sm:pt-7">
+                    <button id="randomizeAllBtn" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Aleatorizar Tudo</button>
+                    <button id="clearAllBtn" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Limpar Tudo</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 p-6 bg-slate-800 rounded-lg shadow-xl">
+            <h3 class="font-orbitron text-2xl text-violet-300 mb-6 text-center">Geração de Prompt</h3>
+            <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                <button id="generateDetailedPromptBtn" class="flex-1 bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 px-4 rounded-lg shadow-xl transition-transform hover:scale-105">Gerar Prompt Detalhado</button>
+                <button id="generateCompactPromptBtn" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-xl transition-transform hover:scale-105">Gerar Prompt Compacto</button>
+            </div>
+            <div>
+                <label for="generatedPrompt" class="block text-sm font-medium text-slate-300 mb-1">Prompt Gerado:</label>
+                <textarea id="generatedPrompt" rows="8" class="w-full p-3 bg-slate-900 border-slate-700 rounded-lg text-slate-200 text-sm"></textarea>
+                <button id="copyPromptBtn" class="mt-3 w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md">
+                    Copiar Prompt
+                </button>
+            </div>
+        </div>
+        
+        <!-- Seção de Geração de Imagem Removida -->
+
+        <footer class="text-center mt-12 py-6 border-t border-slate-700">
+            <p class="text-sm text-slate-500">&copy; 2024 CharGen Studio. Criado com IA.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Objeto centralizado para todas as opções de dropdown e checkboxes
+        const appData = {
+            geral: {
+                genero: ["Não especificado", "Masculino", "Feminino", "Não-binário", "Andrógino", "Gênero-fluido", "Outro"],
+                racaEspecie: {
+                    "Não especificado": ["Não especificado"],
+                    "Humanas": ["Humano (Caucasiano)", "Humano (Asiático)", "Humano (Africano)", "Humano (Latino)", "Humano (Indígena)", "Humano (Miscigenado)"],
+                    "Fantasia Clássica": ["Elfo (Alto Elfo)", "Elfo (Elfo da Floresta)", "Elfo (Elfo Negro/Drow)", "Anão", "Orc", "Goblin", "Hobbit/Halfling", "Gnomo", "Tiefling", "Aasimar", "Draconato", "Homem-Fera (Lobisomem, Minotauro, etc.)"],
+                    "Sci-Fi": ["Cyborg", "Androide/Sintético", "Alienígena (Reptiliano)", "Alienígena (Insetoide)", "Alienígena (Humanoide)", "Alienígena (Energético)", "Mutante"],
+                    "Mitológicas": ["Anjo", "Demônio", "Vampiro", "Fada", "Sereia/Tritão", "Centauro", "Elemental"],
+                    "Outras": ["Morto-vivo (Zumbi, Esqueleto)", "Construto (Golem)", "Planta Antropomórfica"]
+                },
+                arquetipo: ["Não especificado", "O Herói", "O Mentor", "O Guardião", "O Arauto", "O Metamorfo", "A Sombra", "O Aliado", "O Trapaceiro", "A Donzela em Perigo", "O Vilão", "O Anti-Herói"],
+                humorEmocao: ["Não especificado", "Alegre", "Sombrio", "Épico", "Misterioso", "Sereno", "Ameaçador", "Melancólico", "Romântico", "Caótico", "Dramático", "Cômico"]
+            },
+            aparencia: {
+                tipoCorpo: ["Não especificado", "Esguio", "Atlético", "Musculoso(a)", "Corpulento(a)", "Magro(a)", " curvilíneo(a)", "Robusto(a)", "Delicado(a)", "Infantil", "Idoso(a)"],
+                texturaPele: ["Não especificado", "Lisa", "Escamosa", "Metálica", "Rochosa", "Peluda", "Translúcida", "Brilhante", "Rachada", "Casca de Árvore", "Queimada", "Cicatrizada"],
+                penteado: {
+                    "Não especificado": ["Não especificado"],
+                    "Comprimentos": ["Muito Curto (Raspado/Buzzcut)", "Curto", "Médio (altura dos ombros)", "Longo", "Muito Longo (cintura ou mais)"],
+                    "Estilos": ["Liso", "Ondulado", "Cacheado", "Crespo/Afro", "Tranças (Boxeadoras, Nagô, etc.)", "Dreadlocks", "Rabo de Cavalo", "Coque", "Moicano", "Undercut", "Assimétrico", "Bagunçado/Despojado", "Com Franja"]
+                },
+                tipoAsas: ["Não especificado", "Sem Asas", "Penas (Anjo)", "Penas (Pássaro)", "Membranosas (Demônio/Dragão)", "Inseto (Borboleta/Libélula)", "Mecânicas/Tecnológicas", "Esqueléticas", "Energéticas/Etéreas", "Feitas de Fogo/Gelo/Luz"],
+                tipoCauda: ["Não especificado", "Sem Cauda", "Longa e Peluda (Raposa/Esquilo)", "Longa e Lisa (Felina)", "Reptiliana/Escamosa", "Demoníaca (com ponta)", "Mecânica/Cibernética", "Grossa e Musculosa (Dinossauro)", "Ossuda", "Curta (Coelho)"],
+                tipoChifres: ["Não especificado", "Sem Chifres", "Pequenos e Pontudos", "Grandes e Curvados (Carneiro)", "Longos e Retos (Antílope)", "Galhadas (Cervo)", "Demoníacos (complexos e variados)", "Cristalinos", "Metálicos", "Assimétricos"]
+            },
+            papelVestimenta: {
+                profissao: {
+                    "Não especificado": ["Não especificado"],
+                    "Fantasia": ["Guerreiro(a)", "Mago(a)/Feiticeiro(a)", "Ladino(a)/Assassino(a)", "Clérigo(a)/Curandeiro(a)", "Bardo(a)", "Arqueiro(a)", "Paladino(a)", "Druida", "Monge", "Caçador(a) de Recompensas", "Nobre", "Comerciante", "Ferreiro(a)"],
+                    "Sci-Fi": ["Piloto(a) de Nave", "Engenheiro(a) Espacial", "Cientista", "Soldado(a) Espacial/Fuzileiro(a)", "Contrabandista", "Explorador(a) Cósmico", "Diplomata Interestelar", "Hacker/Netrunner", "Médico(a) de Bordo"],
+                    "Moderno/Urbano": ["Detetive", "Jornalista", "Artista", "Músico(a)", "Atleta", "Empresário(a)", "Policial", "Bombeiro(a)", "Chef de Cozinha", "Professor(a)"]
+                },
+                vestimentaPrincipal: ["Não especificado", "Roupas Casuais Modernas", "Traje Formal (Terno/Vestido de Gala)", "Uniforme (Escolar/Militar/Profissional)", "Roupas de Aventura (couro, tecido resistente)", "Vestes Mágicas (túnicas, robes)", "Traje Futurista (macacão tecnológico, roupas cibernéticas)", "Roupas Tribais", "Armadura Leve (sobre roupas)", "Roupas Esportivas", "Pijamas/Roupas de Dormir", "Traje de Banho"],
+                armadura: {
+                    "Não especificado": ["Não especificado", "Sem Armadura"],
+                    "Leve": ["Couro Batido", "Corselete de Couro", "Gambeson/Acolchoada", "Armadura de Malha Leve"],
+                    "Média": ["Cota de Malha", "Brigandina", "Peitoral de Aço", "Armadura de Escamas"],
+                    "Pesada": ["Armadura de Placas Completa", "Armadura Gótica", "Armadura Samurai (O-Yoroi)"],
+                    "Sci-Fi": ["Exoesqueleto Leve", "Traje de Combate Padrão", "Armadura de Energia", "Nano-traje", "Armadura Potencializada (Power Armor)"],
+                    "Exótica": ["Armadura de Osso", "Armadura de Quitina", "Armadura de Cristal"]
+                }
+            },
+            equipamentos: {
+                armas: {
+                    "Não especificado": ["Não especificado", "Desarmado(a)"],
+                    "Corpo a Corpo - Lâminas": ["Espada Longa", "Espada Curta", "Adaga/Punhal", "Katana", "Cimitarra", "Rapieira", "Montante/Zweihander", "Machado de Batalha", "Cutelo"],
+                    "Corpo a Corpo - Impacto": ["Maça", "Martelo de Guerra", "Clava", "Bastão/Cajado"],
+                    "Corpo a Corpo - Haste": ["Lança", "Alabarda", "Tridente"],
+                    "À Distância - Arcos/Bestas": ["Arco Curto", "Arco Longo", "Besta Leve", "Besta Pesada"],
+                    "À Distância - Arremesso": ["Facas de Arremesso", "Shurikens", "Dardos", "Boleadeiras"],
+                    "Armas de Fogo - Antigas": ["Pistola de Pederneira", "Mosquete"],
+                    "Armas de Fogo - Modernas": ["Pistola", "Revólver", "Submetralhadora (SMG)", "Fuzil de Assalto", "Espingarda (Shotgun)", "Fuzil de Precisão (Sniper Rifle)"],
+                    "Armas de Energia/Sci-Fi": ["Pistola Laser", "Rifle Laser", "Pistola de Plasma", "Rifle de Plasma", "Canhão Iônico", "Desintegrador"],
+                    "Mágicas": ["Cajado Mágico", "Varinha", "Orbe Encantado", "Grimório/Tomo", "Amuleto Poderoso"]
+                },
+                acessoriosItens: ["Mochila", "Bolsa de Cinto", "Colar/Amuleto", "Anel(éis)", "Brincos", "Pulseiras", "Capa/Manto", "Chapéu/Elmo", "Óculos/Visor", "Máscara", "Luvas", "Cinto de Utilidades", "Poções", "Pergaminhos", "Lanterna/Fonte de Luz", "Instrumento Musical", "Ferramentas (kit de ladrão, kit de cura)", "Comida/Rações"],
+                montaria: {
+                    "Não especificado": ["Não especificado", "A Pé"],
+                    "Realistas": ["Cavalo", "Camelo", "Elefante", "Cão de Montaria"],
+                    "Fantásticas": ["Grifo", "Dragão", "Hipogrifo", "Unicórnio", "Pégaso", "Lobo Gigante", "Aranha Gigante", "Serpente Alada"],
+                    "Sci-Fi": ["Moto Flutuante (Speeder Bike)", "Jetpack", "Drone de Transporte Pessoal", "Veículo Terrestre Blindado", "Criatura Alienígena Domesticada"],
+                    "Aquáticas": ["Golfinho", "Tubarão Adestrado", "Criatura Marinha Mítica"]
+                },
+                companheiro: {
+                    "Não especificado": ["Não especificado", "Nenhum"],
+                    "Animais Comuns": ["Cão", "Gato", "Falcão/Coruja", "Lobo", "Cavalo (como companheiro, não montaria)"],
+                    "Animais Exóticos/Mágicos": ["Filhote de Dragão", "Fênix", "Elemental Pequeno", "Familiar (Imp, Quasit)", "Constructo Pequeno (Golem de estimação)"],
+                    "Robôs/Drones": ["Drone de Reconhecimento", "Robô de Assistência", "Animal de Estimação Robótico"],
+                    "Humanoides": ["Escudeiro", "Aprendiz", "Guarda-costas (menos proeminente)"]
+                }
+            },
+            estiloVisual: {
+                estilosArtisticos: ["Fotorrealismo", "Pintura Digital", "Arte Conceitual (Concept Art)", "Estilo Anime/Mangá", "Cartoon/Desenho Animado", "Pixel Art", "Arte Abstrata", "Surrealismo", "Impressionismo", "Gótico", "Steampunk", "Cyberpunk", "Aquarela", "Tinta Nanquim", "Escultura Digital (aparência de)", "Estilo de Jogo (ex: Estilo Blizzard, Estilo Riot Games)"],
+                inspiracaoArtista: ["Não especificado", "Greg Rutkowski", "Alphonse Mucha", "H.R. Giger", "Frank Frazetta", "Yoshitaka Amano", "Hayao Miyazaki", "Moebius (Jean Giraud)", "Zdzisław Beksiński", "Brom", "Caravaggio", "Rembrandt"],
+                movimentoArtistico: ["Não especificado", "Renascimento", "Barroco", "Romantismo", "Realismo", "Impressionismo", "Expressionismo", "Surrealismo", "Art Nouveau", "Art Deco", "Pop Art", "Minimalismo"],
+                estiloLiterario: ["Não especificado", "Fantasia Épica", "Fantasia Sombria (Dark Fantasy)", "Ficção Científica Hard", "Space Opera", "Cyberpunk (literário)", "Steampunk (literário)", "Horror Cósmico (Lovecraftiano)", "Conto de Fadas", "Noir/Detetive", "Realismo Mágico"],
+                enquadramentoCamera: ["Não especificado", "Close-up Extremo", "Close-up", "Plano Médio", "Plano Americano", "Plano Inteiro", "Plano Geral", "Contra-plongée (Low Angle Shot)", "Plongée (High Angle Shot)", "Olho de Minhoca (Worm's Eye View)", "Olho de Pássaro (Bird's Eye View)", "Holandês (Dutch Angle)"],
+                estiloLente: ["Não especificado", "Lente Grande Angular (Wide Angle)", "Lente Teleobjetiva (Telephoto)", "Lente Olho de Peixe (Fisheye)", "Lente Macro", "Foco Suave (Soft Focus)", "Bokeh Acentuado", "Tilt-Shift"],
+                efeitosVisuais: ["Não especificado", "HDR (High Dynamic Range)", "Resolução 4K/8K", "Foco Nítido (Sharp Focus)", "Desfoque de Movimento (Motion Blur)", "Grão Cinematográfico (Film Grain)", "Vazamento de Luz (Light Leak)", "Lens Flare", "Vinheta", "Aberração Cromática", "Bloom/Brilho Intenso", "Partículas (poeira, faíscas, magia)"],
+                iluminacaoAtmosfera: ["Não especificado", "Luz do Dia (Sol Forte)", "Luz Difusa (Nublado)", "Crepúsculo/Hora Dourada", "Noite (Luar)", "Iluminação de Estúdio", "Luz Volumétrica/Raios de Luz", "Contraluz (Rim Lighting)", "Iluminação Dramática (Chiaroscuro)", "Névoa/Neblina", "Chuva/Tempestade", "Subaquático", "Espaço Sideral"]
+            },
+            narrativa: {
+                temaGeral: ["Não especificado", "Aventura", "Batalha/Conflito", "Exploração", "Mistério/Investigação", "Sobrevivência", "Magia/Feitiçaria", "Tecnologia Avançada", "Romance", "Tragédia", "Comédia", "Intriga Política"],
+                cenarioDetalhado: {
+                    "Não especificado": ["Não especificado"],
+                    "Natureza Selvagem": ["Floresta Densa", "Montanhas Nevadas", "Deserto Árido", "Pântano Sombrio", "Caverna Misteriosa", "Costa Rochosa", "Selva Exuberante", "Campo Florido", "Vulcão Ativo"],
+                    "Ambientes Construídos - Fantasia": ["Castelo Medieval", "Ruínas Antigas", "Vila Rústica", "Cidade Fortificada", "Templo Sagrado", "Masmorra Subterrânea", "Torre de Mago"],
+                    "Ambientes Construídos - Sci-Fi": ["Nave Espacial (Interior)", "Estação Espacial", "Cidade Futurista (Cyberpunk)", "Colônia Alienígena", "Laboratório Tecnológico", "Planeta Desolado com Estruturas", "Realidade Virtual"],
+                    "Ambientes Construídos - Moderno/Urbano": ["Rua da Cidade à Noite", "Apartamento Moderno", "Biblioteca Antiga", "Museu", "Fábrica Abandonada", "Metrô/Estação de Trem", "Parque Urbano"],
+                    "Lugares Mágicos/Etéreos": ["Plano Astral", "Dimensão dos Sonhos", "Reino das Fadas", "Submundo/Inferno", "Paraíso/Plano Celestial", "Vazio Cósmico"]
+                },
+                acaoPose: {
+                    "Não especificado": ["Não especificado", "Parado(a), olhando para a câmera"],
+                    "Estáticas/Contemplativas": ["Sentado(a) pensativo(a)", "Meditando", "Observando o horizonte", "Lendo um livro/mapa", "De braços cruzados", "Mãos na cintura"],
+                    "Dinâmicas/Ação": ["Correndo", "Saltando", "Empunhando arma", "Lançando feitiço", "Esquivando", "Lutando", "Escalando", "Voando", "Cavalgando"],
+                    "Interação": ["Conversando com outro personagem (não visível)", "Apontando para algo", "Oferecendo/Recebendo um objeto", "Curando/Ajudando alguém"],
+                    "Expressivas": ["Gritando", "Rindo", "Chorando", "Demonstrando poder"]
+                },
+                expressaoFacial: ["Não especificado", "Neutra", "Feliz/Sorrindo", "Triste/Chorando", "Irritado(a)/Com Raiva", "Assustado(a)/Com Medo", "Surpreso(a)", "Confiante", "Desconfiado(a)", "Concentrado(a)", "Entediado(a)", "Malicioso(a)/Travesso(a)", "Dor/Sofrimento"]
+            }
+        };
+
+        const presets = {
+            "guerreiroOrc": {
+                nomePersonagem: "Grak, o Brutal", 
+                caracteristicasFisicas: "Um orc massivo com pele verde-escura, presas proeminentes e cicatrizes de batalha. Olhar feroz e corpo coberto de músculos.",
+                personalidade: "Brutal, Honrado, Leal ao clã",
+                genero: "Masculino",
+                racaEspecie: "Fantasia Clássica|Orc",
+                arquetipo: "O Guardião",
+                humorEmocao: "Ameaçador",
+                tipoCorpo: "Musculoso(a)",
+                corPele: "Verde escuro",
+                texturaPele: "Rochosa",
+                corCabelo: "Preto oleoso",
+                penteado: "Comprimentos|Longo", 
+                corOlhos: "Vermelho sangue",
+                profissao: "Fantasia|Guerreiro(a)",
+                vestimentaPrincipal: "Armadura Leve (sobre roupas)",
+                armadura: "Leve|Couro Batido",
+                armas: "Corpo a Corpo - Lâminas|Machado de Batalha",
+                acessoriosItens: ["Cinto de Utilidades", "Bolsa de Cinto"],
+                temaGeral: "Batalha/Conflito",
+                cenarioDetalhado: "Natureza Selvagem|Campo de Batalha Devastado", 
+                acaoPose: "Dinâmicas/Ação|Empunhando arma", 
+                expressaoFacial: "Irritado(a)/Com Raiva"
+            },
+            "feiticeiraElfica": {
+                nomePersonagem: "Elara Lumina", 
+                caracteristicasFisicas: "Elfa elegante com longos cabelos prateados, olhos violeta brilhantes e feições delicadas. Aura de magia ancestral.",
+                personalidade: "Sábia, Misteriosa, Poderosa",
+                genero: "Feminino",
+                racaEspecie: "Fantasia Clássica|Elfo (Alto Elfo)",
+                arquetipo: "O Mentor",
+                humorEmocao: "Misterioso",
+                tipoCorpo: "Esguio",
+                corPele: "Branca pálida",
+                texturaPele: "Lisa",
+                corCabelo: "Prateado",
+                penteado: "Comprimentos|Muito Longo (cintura ou mais)",
+                corOlhos: "Violeta",
+                profissao: "Fantasia|Mago(a)/Feiticeiro(a)",
+                vestimentaPrincipal: "Vestes Mágicas (túnicas, robes)",
+                armadura: "Não especificado|Sem Armadura",
+                armas: "Mágicas|Cajado Mágico",
+                acessoriosItens: ["Colar/Amuleto", "Anel(éis)", "Grimório/Tomo"],
+                estilosArtisticos: ["Pintura Digital", "Arte Conceitual (Concept Art)"],
+                temaGeral: "Magia/Feitiçaria",
+                cenarioDetalhado: "Lugares Mágicos/Etéreos|Biblioteca Antiga", 
+                acaoPose: "Dinâmicas/Ação|Lançando feitiço",
+                expressaoFacial: "Concentrado(a)"
+            },
+            "cyborgCacadorRecompensas": {
+                nomePersonagem: "Unit 734 (aka 'Cipher')", 
+                caracteristicasFisicas: "Humano com múltiplos implantes cibernéticos visíveis, incluindo um olho óptico vermelho e braço mecânico. Expressão endurecida e pragmática.",
+                personalidade: "Eficiente, Implacável, Solitário",
+                genero: "Não-binário",
+                racaEspecie: "Sci-Fi|Cyborg",
+                arquetipo: "O Anti-Herói",
+                humorEmocao: "Sombrio",
+                tipoCorpo: "Atlético",
+                corPele: "Oliva com partes metálicas",
+                texturaPele: "Metálica", 
+                corCabelo: "Preto curto",
+                penteado: "Comprimentos|Curto",
+                corOlhos: "Um orgânico azul, um óptico vermelho brilhante",
+                profissao: "Sci-Fi|Caçador(a) de Recompensas",
+                vestimentaPrincipal: "Traje Futurista (macacão tecnológico, roupas cibernéticas)",
+                armadura: "Sci-Fi|Exoesqueleto Leve",
+                armas: "Armas de Energia/Sci-Fi|Pistola de Plasma",
+                acessoriosItens: ["Cinto de Utilidades", "Visor Tático", "Manto Desgastado"],
+                estilosArtisticos: ["Cyberpunk", "Arte Conceitual (Concept Art)"],
+                temaGeral: "Tecnologia Avançada",
+                cenarioDetalhado: "Ambientes Construídos - Sci-Fi|Cidade Futurista (Cyberpunk)", 
+                acaoPose: "Dinâmicas/Ação|Empunhando arma",
+                expressaoFacial: "Confiante"
+            }
+        };
+
+        // --- DEFINIÇÃO DAS FUNÇÕES ---
+        function populateSelect(selectId, options, hasOptgroups = false) {
+            const selectElement = document.getElementById(selectId);
+            if (!selectElement) {
+                console.warn(`Elemento select com ID '${selectId}' não encontrado.`);
+                return;
+            }
+            selectElement.innerHTML = ''; 
+
+            if (hasOptgroups) {
+                for (const groupLabel in options) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = groupLabel;
+                    options[groupLabel].forEach(optionValue => {
+                        const option = document.createElement('option');
+                        option.value = `${groupLabel}|${optionValue}`; 
+                        option.textContent = optionValue;
+                        optgroup.appendChild(option);
+                    });
+                    selectElement.appendChild(optgroup);
+                }
+            } else {
+                options.forEach(optionValue => {
+                    const option = document.createElement('option');
+                    option.value = optionValue;
+                    option.textContent = optionValue;
+                    selectElement.appendChild(option);
+                });
+            }
+        }
+
+        function populateAllSelects() {
+            populateSelect('genero', appData.geral.genero);
+            populateSelect('racaEspecie', appData.geral.racaEspecie, true);
+            populateSelect('arquetipo', appData.geral.arquetipo);
+            populateSelect('humorEmocao', appData.geral.humorEmocao);
+            populateSelect('tipoCorpo', appData.aparencia.tipoCorpo);
+            populateSelect('texturaPele', appData.aparencia.texturaPele);
+            populateSelect('penteado', appData.aparencia.penteado, true);
+            populateSelect('tipoAsas', appData.aparencia.tipoAsas);
+            populateSelect('tipoCauda', appData.aparencia.tipoCauda);
+            populateSelect('tipoChifres', appData.aparencia.tipoChifres);
+            populateSelect('profissao', appData.papelVestimenta.profissao, true);
+            populateSelect('vestimentaPrincipal', appData.papelVestimenta.vestimentaPrincipal);
+            populateSelect('armadura', appData.papelVestimenta.armadura, true);
+            populateSelect('armas', appData.equipamentos.armas, true);
+            populateSelect('montaria', appData.equipamentos.montaria, true);
+            populateSelect('companheiro', appData.equipamentos.companheiro, true);
+            populateSelect('inspiracaoArtista', appData.estiloVisual.inspiracaoArtista);
+            populateSelect('movimentoArtistico', appData.estiloVisual.movimentoArtistico);
+            populateSelect('estiloLiterario', appData.estiloVisual.estiloLiterario);
+            populateSelect('enquadramentoCamera', appData.estiloVisual.enquadramentoCamera);
+            populateSelect('estiloLente', appData.estiloVisual.estiloLente);
+            populateSelect('efeitosVisuais', appData.estiloVisual.efeitosVisuais);
+            populateSelect('iluminacaoAtmosfera', appData.estiloVisual.iluminacaoAtmosfera);
+            populateSelect('temaGeral', appData.narrativa.temaGeral);
+            populateSelect('cenarioDetalhado', appData.narrativa.cenarioDetalhado, true);
+            populateSelect('acaoPose', appData.narrativa.acaoPose, true);
+            populateSelect('expressaoFacial', appData.narrativa.expressaoFacial);
+        }
+
+        function populateCheckboxes(containerId, options) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            options.forEach(optionValue => {
+                const label = document.createElement('label');
+                label.className = 'flex items-center text-sm text-slate-200 cursor-pointer';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'custom-checkbox form-checkbox';
+                checkbox.value = optionValue;
+                checkbox.name = containerId; 
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(` ${optionValue}`));
+                container.appendChild(label);
+            });
+        }
+        
+        function setupCollapsibleSections() {
+            const sectionHeaders = document.querySelectorAll('.section-header');
+            sectionHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const content = header.nextElementSibling;
+                    header.classList.toggle('section-open');
+                    const isGridSection = !['section-extras', 'section-desenvolvimento-ia'].includes(content.parentElement.id);
+                    
+                    if (content.style.display === 'none' || content.style.display === '') {
+                        content.style.display = isGridSection ? 'grid' : 'block';
+                    } else {
+                        content.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        function setupColorPickers() {
+            const colorFields = [
+                { textId: 'corPele', pickerId: 'corPelePicker' },
+                { textId: 'corCabelo', pickerId: 'corCabeloPicker' },
+                { textId: 'corOlhos', pickerId: 'corOlhosPicker' },
+                { textId: 'paletaCoresDescricao', pickerId: 'paletaCoresPicker' }
+            ];
+            colorFields.forEach(field => {
+                const textInput = document.getElementById(field.textId);
+                const pickerInput = document.getElementById(field.pickerId);
+                if (textInput && pickerInput) {
+                    textInput.addEventListener('input', () => {
+                        if (/^#[0-9A-F]{6}$/i.test(textInput.value)) {
+                           pickerInput.value = textInput.value;
+                        }
+                    });
+                    pickerInput.addEventListener('input', () => {
+                        textInput.value = pickerInput.value;
+                    });
+                }
+            });
+        }
+
+        // Funções de IA removidas ou adaptadas para não usar API
+        function setupAIFeatures() {
+            // Os botões que chamavam APIs foram removidos do HTML ou terão seus listeners removidos/adaptados
+            // Ex: document.getElementById('generateNameBtn') não existe mais com funcionalidade de IA
+        }
+
+        function parseAndFillForm(apiResponseText) { // Esta função ainda é útil para a análise de TXT
+            const lines = apiResponseText.split('\n');
+            const data = {};
+            lines.forEach(line => {
+                const parts = line.split(': ');
+                if (parts.length > 1) {
+                    const key = parts[0].trim();
+                    const value = parts.slice(1).join(': ').trim();
+                    if (value.toLowerCase() !== "[valor]" && value.toLowerCase() !== "não visível" && value.toLowerCase() !== "n/a") {
+                        data[key] = value;
+                    }
+                }
+            });
+            const fieldMappings = {
+                "Nome do Personagem": { id: "nomePersonagem", type: "text" },
+                "Características Físicas Essenciais": { id: "caracteristicasFisicas", type: "textarea" },
+                "Personalidade (Palavras-chave)": { id: "personalidade", type: "text" },
+                "Gênero": { id: "genero", type: "select", source: appData.geral.genero },
+                "Raça/Espécie": { id: "racaEspecie", type: "select", source: appData.geral.racaEspecie, grouped: true },
+                "Arquétipo": { id: "arquetipo", type: "select", source: appData.geral.arquetipo },
+                "Tipo de Corpo": { id: "tipoCorpo", type: "select", source: appData.aparencia.tipoCorpo },
+                "Cor da Pele": { id: "corPele", type: "text" }, 
+                "Textura da Pele/Corpo": { id: "texturaPele", type: "select", source: appData.aparencia.texturaPele },
+                "Cor do Cabelo": { id: "corCabelo", type: "text" }, 
+                "Penteado": { id: "penteado", type: "select", source: appData.aparencia.penteado, grouped: true },
+                "Cor dos Olhos": { id: "corOlhos", type: "text" }, 
+                "Profissão/Função": { id: "profissao", type: "select", source: appData.papelVestimenta.profissao, grouped: true },
+                "Vestimenta Principal": { id: "vestimentaPrincipal", type: "select", source: appData.papelVestimenta.vestimentaPrincipal },
+                "Armadura": { id: "armadura", type: "select", source: appData.papelVestimenta.armadura, grouped: true },
+                "Armas": { id: "armas", type: "select", source: appData.equipamentos.armas, grouped: true },
+                "Ação/Pose": { id: "acaoPose", type: "select", source: appData.narrativa.acaoPose, grouped: true },
+                "Expressão Facial": { id: "expressaoFacial", type: "select", source: appData.narrativa.expressaoFacial },
+                "Cenário Imediato": { id: "cenarioDetalhado", type: "select", source: appData.narrativa.cenarioDetalhado, grouped: true },
+                "Gênero Aparente": { id: "genero", type: "select", source: appData.geral.genero },
+                "Arma Principal": { id: "armas", type: "select", source: appData.equipamentos.armas, grouped: true },
+                "Descrição Geral Detalhada": { id: "caracteristicasFisicas", type: "textarea" },
+                "Tipo de Asas": { id: "tipoAsas", type: "select", source: appData.aparencia.tipoAsas },
+                "Tipo de Cauda": { id: "tipoCauda", type: "select", source: appData.aparencia.tipoCauda },
+                "Tipo de Chifres": { id: "tipoChifres", type: "select", source: appData.aparencia.tipoChifres },
+                "Montaria Visível": { id: "montaria", type: "select", source: appData.equipamentos.montaria, grouped: true },
+                "Companheiro Visível": { id: "companheiro", type: "select", source: appData.equipamentos.companheiro, grouped: true },
+                "Estilo Artístico da Imagem": { id: "estilosArtisticos", type: "checkbox", source: appData.estiloVisual.estilosArtisticos}, 
+            };
+            console.log("Dados extraídos para preenchimento:", data);
+            for (const key in data) {
+                if (fieldMappings[key]) {
+                    const mapping = fieldMappings[key];
+                    const element = document.getElementById(mapping.id);
+                    if (element) {
+                        if (mapping.type === "select") {
+                            const foundValue = findOptionValue(mapping.source, data[key], mapping.grouped);
+                            if (foundValue) {
+                                element.value = foundValue;
+                            } else {
+                                console.warn(`Valor "${data[key]}" (chave API: "${key}") não encontrado para select ${mapping.id}`);
+                                if (mapping.id === 'inspiracaoArtista' && typeof data[key] === 'string' && data[key].trim() !== "") {
+                                    const newOption = new Option(data[key], data[key], true, true);
+                                    element.add(newOption);
+                                }
+                            }
+                        } else if (mapping.type === "textarea" || mapping.type === "text") {
+                            element.value = data[key];
+                            if (mapping.id === 'corPele' || mapping.id === 'corCabelo' || mapping.id === 'corOlhos' || mapping.id === 'paletaCoresDescricao') {
+                                const pickerId = mapping.id + 'Picker';
+                                const pickerElement = document.getElementById(pickerId);
+                                if (pickerElement) {
+                                   try {
+                                       const tempDiv = document.createElement('div');
+                                       tempDiv.style.color = data[key]; 
+                                       if (tempDiv.style.color !== '') { 
+                                           if (/^#[0-9A-F]{6}$/i.test(data[key])) { 
+                                               pickerElement.value = data[key];
+                                           }
+                                       }
+                                   } catch (e) { console.warn("Não foi possível definir cor no picker:", data[key]); }
+                                }
+                            }
+                        } else if (mapping.type === "checkbox") {
+                            const valuesToSelect = data[key].split(',').map(v => v.trim());
+                            const checkboxes = document.querySelectorAll(`input[name="${mapping.id}"]`);
+                            checkboxes.forEach(cb => {
+                                if (valuesToSelect.some(val => cb.value.toLowerCase().includes(val.toLowerCase()))) {
+                                    cb.checked = true;
+                                }
+                            });
+                        }
+                    } else {
+                         console.warn(`Elemento com ID "${mapping.id}" não encontrado no formulário.`);
+                    }
+                }
+            }
+            if (data["Acessórios Visíveis"]) {
+                const acessorios = data["Acessórios Visíveis"].split(',').map(v => v.trim().toLowerCase());
+                const checkboxes = document.querySelectorAll('input[name="acessoriosItens"]');
+                checkboxes.forEach(cb => {
+                    if (acessorios.includes(cb.value.toLowerCase())) {
+                        cb.checked = true;
+                    }
+                });
+            }
+            if (data["Cores Predominantes (Personagem)"]) {
+                const paletaDesc = document.getElementById('paletaCoresDescricao');
+                if (paletaDesc) paletaDesc.value = data["Cores Predominantes (Personagem)"];
+            }
+        }
+
+        function setupFormActions() {
+            document.getElementById('saveCharacterTxtBtn').addEventListener('click', saveCharacterAsTxt);
+            document.getElementById('loadCharacterTxtBtn').addEventListener('click', () => {
+                document.getElementById('loadCharacterFileInput').click();
+            });
+            document.getElementById('loadCharacterFileInput').addEventListener('change', loadCharacterFromTxt);
+            
+            // Funcionalidade de Análise de TXT removida para versão offline
+            // document.getElementById('analyzeTxtAndFillBtn').addEventListener('click', () => {
+            //     document.getElementById('analyzeTxtFileInput').click();
+            // });
+            // document.getElementById('analyzeTxtFileInput').addEventListener('change', analyzeTextAndFillForm);
+
+
+            document.getElementById('applyPresetBtn').addEventListener('click', applySelectedPreset);
+            document.getElementById('randomizeAllBtn').addEventListener('click', randomizeAllFields);
+            document.getElementById('clearAllBtn').addEventListener('click', clearAllFields);
+        }
+        
+        function getFormDataAsObject() {
+            const characterData = {};
+            const form = document.getElementById('characterForm');
+            Array.from(form.elements).forEach(element => {
+                const name = element.name;
+                if (!name) return;
+
+                if (element.type === 'checkbox') {
+                    if (name === 'acessoriosItens' || name === 'estilosArtisticos') {
+                        if (!characterData[name]) characterData[name] = [];
+                        if (element.checked) characterData[name].push(element.value);
+                    } else {
+                        characterData[name] = element.checked;
+                    }
+                } else if (element.type === 'select-multiple') {
+                    characterData[name] = Array.from(element.selectedOptions).map(opt => opt.value);
+                } else if (element.type === 'radio') {
+                    if (element.checked) characterData[name] = element.value;
+                } else if (element.type !== 'button' && element.type !== 'submit' && element.type !== 'reset' && element.type !== 'file' && element.type !== 'fieldset') {
+                     characterData[name] = element.value;
+                }
+            });
+            ['acessoriosItens', 'estilosArtisticos'].forEach(chkGroup => {
+                if (!characterData[chkGroup]) characterData[chkGroup] = [];
+            });
+            return characterData;
+        }
+
+        function saveCharacterAsTxt() {
+            const characterData = getFormDataAsObject();
+            const characterName = characterData.nomePersonagem || 'personagem_chargen';
+            const filename = `${characterName.replace(/\s+/g, '_').toLowerCase()}.txt`;
+            const dataStr = JSON.stringify(characterData, null, 2); 
+            
+            const blob = new Blob([dataStr], {type: "text/plain;charset=utf-8"});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast(`Personagem "${characterName}" salvo como ${filename}!`, 'success');
+        }
+
+        function loadCharacterFromTxt(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                showToast('Nenhum arquivo selecionado.', 'warning');
+                return;
+            }
+            if (file.type !== "text/plain") {
+                showToast('Formato de arquivo inválido. Por favor, selecione um arquivo .txt.', 'error');
+                event.target.value = ''; 
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const characterData = JSON.parse(e.target.result); 
+                    fillFormWithData(characterData);
+                    showToast(`Personagem "${characterData.nomePersonagem || 'Desconhecido'}" carregado do arquivo!`, 'success');
+                } catch (error) {
+                    console.error("Erro ao analisar o arquivo TXT (JSON esperado):", error);
+                    console.log("Conteúdo problemático (primeiros 100 caracteres):", e.target.result.substring(0,100));
+                    showToast('Erro ao carregar: O conteúdo do arquivo não é um JSON válido. Verifique se o arquivo foi gerado por esta aplicação e não foi modificado. Detalhes no console.', 'error');
+                } finally {
+                     event.target.value = ''; 
+                }
+            };
+            reader.onerror = () => {
+                showToast('Erro ao ler o arquivo.', 'error');
+                event.target.value = ''; 
+            };
+            reader.readAsText(file);
+        }
+        
+        function populatePresets() {
+            const selectElement = document.getElementById('presets');
+            selectElement.innerHTML = '<option value="">Selecione um preset...</option>';
+            for (const key in presets) {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = presets[key].nomePersonagem || key; 
+                selectElement.appendChild(option);
+            }
+        }
+
+        function applySelectedPreset() {
+            const presetKey = document.getElementById('presets').value;
+            if (!presetKey) {
+                showToast('Nenhum preset selecionado.', 'warning');
+                return;
+            }
+            const presetData = presets[presetKey];
+            if (presetData) {
+                clearAllFields(false); 
+                fillFormWithData(presetData);
+                showToast(`Preset "${presetData.nomePersonagem || presetKey}" aplicado!`, 'success');
+            }
+        }
+        
+        function fillFormWithData(data) {
+            const form = document.getElementById('characterForm');
+            for (const key in data) {
+                const elements = form.elements[key]; 
+                if (elements) {
+                    const element = elements.length && elements[0].type !== 'radio' ? elements[0] : elements; 
+
+                    if (key === 'acessoriosItens' || key === 'estilosArtisticos') {
+                        const checkboxes = document.querySelectorAll(`input[name="${key}"]`);
+                        const valuesToSelect = Array.isArray(data[key]) ? data[key] : (data[key] ? [data[key]] : []);
+                        checkboxes.forEach(cb => {
+                            cb.checked = valuesToSelect.some(val => cb.value.toLowerCase() === val.toLowerCase());
+                        });
+                    } else if (element.type === 'checkbox' && !elements.length) { 
+                        element.checked = data[key]; 
+                    } else if (elements.length && elements[0].type === 'radio') { 
+                         Array.from(elements).forEach(radio => {
+                            if (radio.value === data[key]) {
+                                radio.checked = true;
+                            }
+                        });
+                    } else if (element.type === 'select-one' || element.type === 'select-multiple') {
+                        const valueToSet = data[key];
+                        const foundValue = findOptionValueInElement(element, valueToSet);
+                        if (foundValue !== null) { 
+                            element.value = foundValue;
+                        } else {
+                            const simpleValue = typeof valueToSet === 'string' && valueToSet.includes('|') ? valueToSet.split('|')[1] : valueToSet;
+                            const simpleFoundValue = findOptionValueInElement(element, simpleValue);
+                            if (simpleFoundValue !== null) {
+                                element.value = simpleFoundValue;
+                            } else {
+                                console.warn(`Valor "${data[key]}" não encontrado para select ${key}. Tentando adicionar como nova opção.`);
+                                if (element.id === 'inspiracaoArtista' && typeof data[key] === 'string' && data[key].trim() !== "") {
+                                    const newOption = new Option(data[key], data[key], true, true);
+                                    element.add(newOption);
+                                } else {
+                                     console.warn(`Não foi possível definir o valor para ${key}. Opção não encontrada e não é um campo de adição dinâmica.`);
+                                }
+                            }
+                        }
+                    } else {
+                       element.value = data[key];
+                    }
+
+                    if (['corPele', 'corCabelo', 'corOlhos', 'paletaCoresDescricao'].includes(key)) {
+                        const picker = document.getElementById(key + 'Picker');
+                        if (picker && typeof data[key] === 'string' && /^#[0-9A-F]{6}$/i.test(data[key])) {
+                           picker.value = data[key];
+                        } 
+                    }
+                }
+            }
+        }
+
+
+        function findOptionValueInElement(selectElement, valueToFind) {
+            if (typeof valueToFind !== 'string') return null; 
+            const lowerValueToFind = valueToFind.toLowerCase().trim();
+
+            for (let i = 0; i < selectElement.options.length; i++) {
+                const option = selectElement.options[i];
+                const optionValueLower = option.value.toLowerCase().trim();
+                const optionTextLower = option.textContent.toLowerCase().trim();
+
+                if (optionValueLower === lowerValueToFind) return option.value;
+                if (optionTextLower === lowerValueToFind) return option.value;
+                
+                if (option.value.includes('|')) {
+                    const optGroupVal = option.value.split('|')[1].toLowerCase().trim();
+                    if (optGroupVal === lowerValueToFind) return option.value;
+                }
+            }
+            return null; 
+        }
+
+        function randomizeAllFields() {
+            const form = document.getElementById('characterForm');
+            Array.from(form.elements).forEach(element => {
+                if (element.tagName === 'SELECT') {
+                    const randomIndex = Math.floor(Math.random() * element.options.length);
+                    element.selectedIndex = randomIndex;
+                } else if (element.type === 'text' && 
+                           !element.id.toLowerCase().includes('cor') && 
+                           !element.id.toLowerCase().includes('promptnegativo') &&
+                           !element.id.includes('TriggerInput') && 
+                           element.id !== 'personalidadeDetalhada' && 
+                           element.id !== 'historiaFundoGerada' &&
+                           element.id !== 'historiaReviravolta' && 
+                           element.id !== 'nomePersonagem') { 
+                } else if (element.type === 'checkbox') {
+                    element.checked = Math.random() < 0.3; 
+                } else if (element.type === 'color') {
+                    element.value = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+                    const textId = element.id.replace('Picker', '');
+                    const textInput = document.getElementById(textId);
+                    if (textInput) textInput.value = element.value; 
+                } else if (element.tagName === 'TEXTAREA' && 
+                           element.id !== 'personalidadeDetalhada' &&
+                           element.id !== 'historiaFundoGerada' &&
+                           element.id !== 'historiaReviravolta' &&
+                           element.id !== 'generatedPrompt' &&
+                           element.id !== 'caracteristicasFisicas') { 
+                }
+            });
+            ['acessoriosItens', 'estilosArtisticos'].forEach(chkGroup => {
+                document.querySelectorAll(`input[name="${chkGroup}"]`).forEach(cb => {
+                    cb.checked = Math.random() < 0.2; 
+                });
+            });
+            document.getElementById('personalidadeDetalhada').value = '';
+            document.getElementById('historiaFundoGerada').value = '';
+            document.getElementById('historiaReviravolta').value = '';
+            
+            const triggerInputs = document.querySelectorAll('input[id$="TriggerInput"]');
+            triggerInputs.forEach(input => input.value = '');
+            const suggestionOutputs = document.querySelectorAll('div[id$="SuggestionsOutput"]');
+            suggestionOutputs.forEach(output => {
+                output.innerHTML = '';
+                const clearBtn = output.parentElement.querySelector('.clear-suggestions-btn');
+                if (clearBtn) clearBtn.remove();
+            });
+
+
+            showToast('Campos aleatorizados! (Campos de IA e sugestões não foram alterados)', 'info');
+        }
+
+        function clearAllFields(notify = true) {
+            document.getElementById('characterForm').reset();
+            ['corPele', 'corCabelo', 'corOlhos', 'paletaCoresDescricao'].forEach(id => {
+                const textInput = document.getElementById(id);
+                const pickerInput = document.getElementById(id + 'Picker');
+                if (textInput) textInput.value = '';
+                if (pickerInput) pickerInput.value = '#000000'; 
+            });
+            document.getElementById('caracteristicasFisicas').value = '';
+            document.getElementById('generatedPrompt').value = '';
+            document.getElementById('promptNegativo').value = '';
+            document.getElementById('personalidadeDetalhada').value = ''; 
+            document.getElementById('historiaFundoGerada').value = '';   
+            document.getElementById('historiaReviravolta').value = '';   
+
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            
+            // Limpar rascunho
+            const rascunhoTextarea = document.getElementById('rascunhoTextarea');
+            if(rascunhoTextarea) rascunhoTextarea.value = '';
+
+
+            const triggerInputs = document.querySelectorAll('input[id$="TriggerInput"]');
+            triggerInputs.forEach(input => input.value = '');
+            const suggestionOutputs = document.querySelectorAll('div[id$="SuggestionsOutput"]');
+             suggestionOutputs.forEach(output => {
+                output.innerHTML = '';
+                const clearBtn = output.parentElement.querySelector('.clear-suggestions-btn');
+                if (clearBtn) clearBtn.remove();
+            });
+
+
+            if (notify) showToast('Formulário limpo!', 'info');
+        }
+
+        function getFieldLabel(elementId) {
+            const element = document.getElementById(elementId);
+            if (element && element.labels && element.labels.length > 0) {
+                return element.labels[0].textContent.replace(':', '').trim();
+            }
+            const capitalizedId = elementId.charAt(0).toUpperCase() + elementId.slice(1);
+            return capitalizedId.replace(/([A-Z])/g, ' $1').trim(); 
+        }
+
+        function setupPromptGeneration() {
+            document.getElementById('generateDetailedPromptBtn').addEventListener('click', () => generatePrompt('detailed'));
+            document.getElementById('generateCompactPromptBtn').addEventListener('click', () => generatePrompt('compact'));
+            document.getElementById('copyPromptBtn').addEventListener('click', copyPromptToClipboard);
+        }
+
+        function generatePrompt(type) {
+            const form = document.getElementById('characterForm');
+            let promptParts = [];
+
+            const fieldProcessOrder = [
+                { id: 'nomePersonagem', label: 'Nome do Personagem' },
+                { id: 'caracteristicasFisicas', label: 'Características Físicas Essenciais' },
+                { id: 'personalidade', label: 'Personalidade (Palavras-chave)' },
+                { id: 'personalidadeDetalhada', label: 'Personalidade Detalhada' },
+                { id: 'genero', label: 'Gênero' },
+                { id: 'racaEspecie', label: 'Raça/Espécie' },
+                { id: 'arquetipo', label: 'Arquétipo' },
+                { id: 'humorEmocao', label: 'Humor/Emoção Geral da Cena' },
+                { id: 'tipoCorpo', label: 'Tipo de Corpo' },
+                { id: 'corPele', label: 'Cor da Pele', isColor: true, pickerId: 'corPelePicker' },
+                { id: 'texturaPele', label: 'Textura da Pele/Corpo' },
+                { id: 'corCabelo', label: 'Cor do Cabelo', isColor: true, pickerId: 'corCabeloPicker' },
+                { id: 'penteado', label: 'Penteado' },
+                { id: 'corOlhos', label: 'Cor dos Olhos', isColor: true, pickerId: 'corOlhosPicker' },
+                { id: 'qtdOlhos', label: 'Quantidade de Olhos' },
+                { id: 'qtdBracos', label: 'Quantidade de Braços' },
+                { id: 'qtdPernas', label: 'Quantidade de Pernas' },
+                { id: 'tipoAsas', label: 'Tipo de Asas' },
+                { id: 'tipoCauda', label: 'Tipo de Cauda' },
+                { id: 'tipoChifres', label: 'Tipo de Chifres' },
+                { id: 'profissao', label: 'Profissão/Função' },
+                { id: 'vestimentaPrincipal', label: 'Vestimenta Principal' },
+                { id: 'armadura', label: 'Armadura' },
+                { id: 'armas', label: 'Armas' },
+                { id: 'objetosChave', label: 'Objetos Chave' },
+                { id: 'montaria', label: 'Montaria' },
+                { id: 'companheiro', label: 'Companheiro' },
+                { id: 'acessoriosItens', label: 'Acessórios/Itens', isCheckboxGroup: true },
+                { id: 'estilosArtisticos', label: 'Estilos Artísticos', isCheckboxGroup: true },
+                { id: 'inspiracaoArtista', label: 'Inspiração em Artista' },
+                { id: 'movimentoArtistico', label: 'Movimento Artístico' },
+                { id: 'estiloLiterario', label: 'Estilo Literário (Tom/Atmosfera)' },
+                { id: 'enquadramentoCamera', label: 'Enquadramento de Câmera' },
+                { id: 'estiloLente', label: 'Estilo de Lente' },
+                { id: 'efeitosVisuais', label: 'Efeitos Visuais' },
+                { id: 'iluminacaoAtmosfera', label: 'Iluminação/Atmosfera' },
+                { id: 'paletaCoresDescricao', label: 'Paleta de Cores', isColor: true, pickerId: 'paletaCoresPicker' },
+                { id: 'temaGeral', label: 'Tema Geral' },
+                { id: 'cenarioDetalhado', label: 'Cenário Detalhado' },
+                { id: 'acaoPose', label: 'Ação/Pose' },
+                { id: 'expressaoFacial', label: 'Expressão Facial' },
+                { id: 'historiaFundoGerada', label: 'História de Fundo' },
+                { id: 'historiaReviravolta', label: 'Reviravolta/Segredo' }
+            ];
+
+            fieldProcessOrder.forEach(fieldInfo => {
+                const element = form.elements[fieldInfo.id];
+                if (!element) return;
+
+                let valueToAdd = null;
+                const fieldLabel = fieldInfo.label || getFieldLabel(fieldInfo.id);
+                let rawValue = ""; // Para o prompt compacto
+
+                if (fieldInfo.isColor) {
+                    const textValue = element.value.trim();
+                    const pickerValue = document.getElementById(fieldInfo.pickerId).value;
+                    if (textValue && pickerValue !== '#000000' && textValue.toLowerCase() !== pickerValue.toLowerCase() && pickerValue !== '#ffffff') { 
+                        valueToAdd = `${fieldLabel}: ${textValue} (${pickerValue})`;
+                        rawValue = `${textValue} (${pickerValue})`;
+                    } else if (textValue) {
+                        valueToAdd = `${fieldLabel}: ${textValue}`;
+                        rawValue = textValue;
+                    } else if (pickerValue !== '#000000' && pickerValue !== '#ffffff') { 
+                        valueToAdd = `${fieldLabel}: ${pickerValue}`;
+                        rawValue = pickerValue;
+                    }
+                } else if (fieldInfo.isCheckboxGroup) {
+                    const checkedItems = Array.from(document.querySelectorAll(`input[name="${fieldInfo.id}"]:checked`)).map(cb => cb.value);
+                    if (checkedItems.length > 0) {
+                        valueToAdd = `${fieldLabel}: ${checkedItems.join(', ')}`;
+                        rawValue = checkedItems.join(', ');
+                    }
+                } else if (element.type === 'select-one') {
+                    if (element.value && element.value !== "Não especificado" && element.options[element.selectedIndex].textContent !== "Não especificado") {
+                        let selectedText = element.options[element.selectedIndex].textContent;
+                         valueToAdd = `${fieldLabel}: ${selectedText}`;
+                         rawValue = selectedText;
+                    }
+                } else if (element.type === 'textarea' || element.type === 'text') {
+                    if (element.value.trim() !== "") {
+                        valueToAdd = `${fieldLabel}: ${element.value.trim()}`;
+                        rawValue = element.value.trim();
+                    }
+                }
+                
+                if (type === 'detailed' && valueToAdd) {
+                    promptParts.push(valueToAdd);
+                } else if (type === 'compact' && rawValue) {
+                    promptParts.push(rawValue);
+                }
+            });
+
+            let finalPrompt = "";
+            if (type === 'detailed') {
+                finalPrompt = promptParts.filter(p => p).join(". "); 
+            } else { 
+                finalPrompt = promptParts.filter(p => p).join(", ");
+            }
+            const promptNegativo = document.getElementById('promptNegativo').value.trim();
+            if (promptNegativo) {
+                if (type === 'detailed') {
+                    const negLabel = getFieldLabel('promptNegativo');
+                    finalPrompt += (finalPrompt ? ". " : "") + `${negLabel}: ${promptNegativo}`;
+                } else {
+                     finalPrompt += (finalPrompt ? ", " : "") + `--neg ${promptNegativo}`;
+                }
+            }
+            document.getElementById('generatedPrompt').value = finalPrompt;
+            if (finalPrompt) {
+                showToast(`Prompt ${type === 'detailed' ? 'detalhado' : 'compacto'} gerado!`, 'success');
+            } else {
+                showToast('Nenhuma informação para gerar prompt.', 'warning');
+            }
+        }
+
+
+        function copyPromptToClipboard() {
+            const promptTextarea = document.getElementById('generatedPrompt');
+            if (!promptTextarea.value) {
+                showToast('Nenhum prompt para copiar.', 'warning');
+                return;
+            }
+            try {
+                if (navigator.clipboard && window.isSecureContext) { 
+                    navigator.clipboard.writeText(promptTextarea.value)
+                        .then(() => showToast('Prompt copiado para a área de transferência!', 'success'))
+                        .catch(err => {
+                            console.warn('Falha ao copiar com navigator.clipboard, tentando fallback:', err);
+                            copyUsingExecCommand(promptTextarea);
+                        });
+                } else {
+                    copyUsingExecCommand(promptTextarea);
+                }
+            } catch (e) {
+                 copyUsingExecCommand(promptTextarea);
+            }
+        }
+
+        function copyUsingExecCommand(textareaElement) {
+            textareaElement.select(); 
+            textareaElement.setSelectionRange(0, 99999); 
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast('Prompt copiado (fallback)!', 'success');
+                } else {
+                    showToast('Falha ao copiar o prompt (fallback).', 'error');
+                }
+            } catch (err) {
+                showToast('Erro ao copiar o prompt (fallback).', 'error');
+                console.error('Erro no document.execCommand:', err);
+            }
+            window.getSelection().removeAllRanges(); 
+        }
+
+        let toastTimeout;
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast-notification');
+            toast.textContent = message;
+            toast.classList.remove('opacity-0', 'bg-violet-600', 'bg-green-600', 'bg-amber-500', 'bg-red-600'); 
+            switch (type) {
+                case 'success': toast.classList.add('bg-green-600'); break;
+                case 'error': toast.classList.add('bg-red-600'); break;
+                case 'warning': toast.classList.add('bg-amber-500'); break;
+                default: toast.classList.add('bg-violet-600'); break;
+            }
+            toast.classList.add('opacity-100');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, 3000);
+        }
+        
+        function findOptionValue(optionsSource, valueToFind, isGrouped = false) {
+            if (!valueToFind || typeof valueToFind !== 'string') return null;
+            const lowerValueToFind = valueToFind.toLowerCase().trim();
+
+            if (isGrouped) {
+                for (const group in optionsSource) {
+                    for (const option of optionsSource[group]) {
+                        const lowerOption = option.toLowerCase().trim();
+                        if (lowerOption.includes(lowerValueToFind) || lowerValueToFind.includes(lowerOption)) {
+                            return `${group}|${option}`; 
+                        }
+                    }
+                }
+                for (const group in optionsSource) {
+                    for (const option of optionsSource[group]) {
+                        if (option.toLowerCase().trim() === lowerValueToFind) return `${group}|${option}`;
+                    }
+                }
+            } else {
+                for (const option of optionsSource) {
+                     const lowerOption = option.toLowerCase().trim();
+                    if (lowerOption.includes(lowerValueToFind) || lowerValueToFind.includes(lowerOption)) {
+                        return option;
+                    }
+                }
+                for (const option of optionsSource) {
+                    if (option.toLowerCase().trim() === lowerValueToFind) return option;
+                }
+            }
+            return null; 
+        }
+
+        // --- EVENT LISTENER DOMCONTENTLOADED ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup da Aba Lateral de Rascunho
+            const openRascunhoBtn = document.getElementById('openRascunhoBtn');
+            const closeRascunhoBtn = document.getElementById('closeRascunhoBtn');
+            const rascunhoSidebar = document.getElementById('rascunhoSidebar');
+            const rascunhoTextarea = document.getElementById('rascunhoTextarea');
+            const addRascunhoToPromptBtn = document.getElementById('addRascunhoToPromptBtn');
+            const clearRascunhoBtn = document.getElementById('clearRascunhoBtn');
+            const generatedPromptTextarea = document.getElementById('generatedPrompt');
+
+            if (openRascunhoBtn && closeRascunhoBtn && rascunhoSidebar) {
+                openRascunhoBtn.addEventListener('click', () => {
+                    rascunhoSidebar.classList.remove('translate-x-full');
+                    openRascunhoBtn.classList.add('hidden'); 
+                });
+
+                closeRascunhoBtn.addEventListener('click', () => {
+                    rascunhoSidebar.classList.add('translate-x-full');
+                    openRascunhoBtn.classList.remove('hidden'); 
+                });
+            }
+            
+            if (addRascunhoToPromptBtn && rascunhoTextarea && generatedPromptTextarea) {
+                addRascunhoToPromptBtn.addEventListener('click', () => {
+                    const rascunhoContent = rascunhoTextarea.value.trim();
+                    if (rascunhoContent) {
+                        const promptAtual = generatedPromptTextarea.value.trim();
+                        const separador = promptAtual === "" ? "" : "\n\n"; 
+                        generatedPromptTextarea.value = promptAtual + separador + rascunhoContent;
+                        showToast('Rascunho adicionado ao prompt final!', 'success');
+                    } else {
+                        showToast('Rascunho está vazio.', 'warning');
+                    }
+                });
+            }
+
+            if (clearRascunhoBtn && rascunhoTextarea) {
+                clearRascunhoBtn.addEventListener('click', () => {
+                    rascunhoTextarea.value = '';
+                    showToast('Rascunho limpo!', 'info');
+                });
+            }
+            
+            // Demais setups
+            populateAllSelects();
+            populateCheckboxes('acessoriosItens', appData.equipamentos.acessoriosItens);
+            populateCheckboxes('estilosArtisticos', appData.estiloVisual.estilosArtisticos);
+            setupCollapsibleSections();
+            setupColorPickers();
+            // setupImageAnalysis(); // Removido para offline
+            setupAIFeatures(); 
+            setupFormActions();
+            setupPromptGeneration(); 
+            populatePresets();
+
+            const firstTwoSections = [
+                // document.getElementById('section-analise-imagem'), // Removido para offline
+                document.getElementById('section-identidade')
+            ];
+            firstTwoSections.forEach(section => {
+                if (section) { // Verificar se a seção existe antes de tentar acessá-la
+                    const header = section.querySelector('.section-header');
+                    const content = section.querySelector('.section-content');
+                    if (header && content) {
+                        content.style.display = 'grid'; 
+                        header.classList.add('section-open');
+                    }
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>

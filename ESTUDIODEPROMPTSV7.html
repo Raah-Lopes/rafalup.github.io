@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Chosen Palette: Dark Violet Theme -->
+    <!-- Application Structure Plan: A aplicação usa uma barra lateral persistente em telas maiores e um menu hambúrguer em telas menores. Todas as categorias estão listadas na barra lateral e funcionam como um acordeão, expandindo para mostrar as opções. Esta estrutura foi escolhida para melhorar o fluxo de trabalho, mantendo as ferramentas sempre visíveis e acessíveis em desktops, ao mesmo tempo que otimiza o espaço em telas móveis. -->
+    <!-- Visualization & Content Choices: Informações do Gerador de Estilos -> Objetivo: Seleção Rápida -> Apresentação: Listas clicáveis em um painel acordeão -> Interação: Destaque visual no item selecionado para feedback imediato -> Justificação: Método rápido e visual para compor prompts com termos pré-definidos. / Informações do Criador de Personagens -> Objetivo: Entrada de Dados Guiada -> Apresentação: Campos de formulário (select, input, textarea) agrupados por tema em painéis acordeão -> Interação: Preenchimento de formulário padrão -> Justificação: Usa padrões de UI familiares para coletar dados detalhados de forma estruturada. / Ambas as fontes de dados são combinadas em uma <textarea> final. -> CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <title>Estúdio de Prompts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #f3f4f6; }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
+        
+        .accordion-content { transition: max-height 0.3s ease-out, opacity 0.3s ease-out, padding 0.3s ease-out; overflow: hidden; max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; }
+        .accordion-content.open { max-height: 1000px; opacity: 1; padding-top: 1rem; padding-bottom: 1rem;}
+        
+        .selected-item { background-color: #4f46e5 !important; color: #fff !important; font-weight: 600; }
+
+        select, input[type="text"], textarea {
+            background-color: #374151; border: 1px solid #4b5563; color: #f3f4f6; border-radius: 0.5rem; width: 100%; padding: 0.5rem;
+        }
+        select:focus, input:focus, textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 2px #4f46e5; outline: none; }
+        
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6">
+
+    <header class="flex justify-between items-center mb-6 pb-4 border-b border-slate-700">
+        <h1 class="font-orbitron text-2xl md:text-3xl font-bold text-violet-400">Estúdio de Prompts</h1>
+        <button id="hamburger-btn" class="p-2 rounded-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500 md:hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+    </header>
+
+    <div class="md:grid md:grid-cols-12 md:gap-8">
+        
+        <aside id="sidebar" class="md:col-span-4 lg:col-span-3 fixed md:relative top-0 left-0 h-full w-80 md:w-auto bg-slate-900 md:bg-transparent shadow-xl md:shadow-none transform -translate-x-full md:translate-x-0 z-40 p-4 md:p-0">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-700 md:hidden">
+                 <h2 class="font-orbitron text-xl text-violet-300">Categorias</h2>
+                 <button id="close-sidebar-btn" class="p-2 rounded-md hover:bg-slate-700">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                 </button>
+            </div>
+            <div class="h-full overflow-y-auto pr-2">
+                 <form id="characterForm">
+                     <div id="categories-container" class="space-y-2">
+                     </div>
+                 </form>
+            </div>
+        </aside>
+
+        <main class="md:col-span-8 lg:col-span-9">
+            <div class="bg-slate-800/50 backdrop-blur-sm p-4 rounded-lg shadow-xl mb-6 sticky top-4 z-10">
+                <label for="generatedPrompt" class="block text-sm font-medium text-slate-300 mb-2">Seu Prompt Final:</label>
+                <textarea id="generatedPrompt" rows="8" class="w-full p-3 bg-slate-900 border-slate-700 rounded-lg text-slate-200 text-sm" placeholder="Abra o menu, selecione os termos e clique em 'Gerar Prompt'..."></textarea>
+                <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    <button id="generateCompactPromptBtn" class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-3 rounded-lg shadow-xl transition-transform hover:scale-105 text-sm">Gerar Compacto</button>
+                    <button id="generateDetailedPromptBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg shadow-xl transition-transform hover:scale-105 text-sm">Gerar Detalhado</button>
+                    <button id="copyPromptBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Copiar</button>
+                    <button id="randomizeAllBtn" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Embaralhar</button>
+                    <button id="clearAllBtn" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Limpar</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-notification" class="fixed bottom-5 right-5 bg-violet-600 text-white py-3 px-6 rounded-lg shadow-xl text-sm z-50 transition-all duration-300 opacity-0 transform translate-y-10"></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        let openAccordion = null;
+        let styleSelectedTerms = new Set();
+        let toastTimeout;
+        const stylePromptData = {
+            artists: { title: "Artistas", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-indigo-400"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M15.23 5.23L9.17 10.17c-.4.39-.4 1.02 0 1.41l5.3 5.3c.39.39 1.02.39 1.41 0l.71-.71c.39-.39.39-1.02 0-1.41L11.7 10.88l4.24-4.24c.39-.39.39-1.02 0-1.41l-.71-.71c-.39-.4-.08-1.03.31-1.42z"/></svg>`, items: ['Abigail Larson (arte gótica, contos de fadas sombrios)', 'Adam Hughes (pin-ups, quadrinhos)', 'Afarin Sajedi (retratos surreais e melancólicos)', 'Akira Toriyama (Dragon Ball, Dr. Slump)', 'Alphonse Mucha (Art Nouveau, cartazes ornamentados)', 'Alvaro Siza (arquitetura minimalista)', 'Anato Finnstark (fantasia sombria, ambientes épicos)', 'Andrea Kowch (realismo mágico, narrativas rurais)', 'Andreas Rocha (paisagens de fantasia, arte de games)', 'Andrei Tarkovsky (cinema poético, Stalker)', 'Andrew Wyeth (realismo, paisagens americanas)', 'Anna Bocek (retratos expressivos, abstratos)', 'Anthony Van Dyck (retratos barrocos, nobreza)', 'Antoine Blanchard (cenas urbanas parisienses, Belle Époque)', 'Anton Fadeev (arte conceitual, ficção científica)', 'Arcimboldo (retratos com frutas e vegetais)', 'Ayami Kojima (arte de Castlevania, estilo gótico)', 'Banksy (arte de rua, crítica social)', 'Bernie Wrightson (terror, quadrinhos, Frankenstein)', 'Bill Sienkiewicz (arte de quadrinhos experimental)', 'Bob Eggleton (ficção científica, fantasia, monstros)', 'Carne Griffiths (desenhos com tinta e chá)', 'Caspar David Friedrich (Romantismo, paisagens sublimes)', 'Charlie Bowater (arte de fantasia, retratos femininos)', 'Chris Rahn (arte para Magic: The Gathering)', 'Claude Monet (Impressionismo, nenúfares)', 'Craig Mullins (pintura digital, arte conceitual)', 'Dan Mumford (pôsteres de cultura pop, cores vibrantes)', 'Dave McKean (colagens, quadrinhos, Sandman)', 'David Hockney (Pop Art, piscinas)', 'Diego Rivera (muralismo mexicano)', 'Donato Giancola (fantasia clássica, realismo)', 'Doré (ilustrações bíblicas e literárias)', 'Drew Struzan (pôsteres de filmes icônicos)', 'Ed Binkley (fantasia, personagens caprichosos)', 'Edward Gorey (ilustrações macabras e bem-humoradas)', 'Edward Hopper (solidão urbana, realismo americano)', 'Egon Schiele (Expressionismo, retratos contorcidos)', 'Eiichiro Oda (One Piece)', 'Frank Frazetta (fantasia heroica, barbáros)', 'Frida Kahlo (auto-retratos, surrealismo mexicano)', 'Gediminas Pranckevicius (paisagens surreais e sonhadoras)', 'Genndy Tartakovsky (animação, Samurai Jack)', 'Georges Seurat (Pontilhismo)', 'Georgia O\'Keeffe (flores, paisagens do Novo México)', 'Gerald Brom (fantasia gótica, arte sombria)', 'Greg Hildebrandt (pôsteres de Star Wars, fantasia)', 'Greg Rutkowski (fantasia épica, Dungeons & Dragons)', 'Guido Borelli (paisagens italianas, impressionismo)', 'Gustav Klimt (Simbolismo, O Beijo)', 'Gustave Moreau (Simbolismo, temas mitológicos)', 'H.R. Giger (arte biomecânica, Alien)', 'Hayao Miyazaki (Studio Ghibli, A Viagem de Chihiro)', 'Henri Matisse (Fauvismo, uso radical da cor)', 'Hieronymus Bosch (renascimento nórdico, cenas fantásticas)', 'Hsiao-Ron Cheng (retratos surreais e delicados)', 'Ivan Aivazovsky (paisagens marinhas, Romantismo)', 'J.C. Leyendecker (ilustração da Era de Ouro)', 'J.M.W. Turner (paisagens românticas, luz e atmosfera)', 'Jack Kirby (quadrinhos, O Rei dos Quadrinhos)', 'James Gurney (Dinotopia, realismo fantástico)', 'James Jean (arte surreal e detalhada)', 'Jason Edmiston (pôsteres de cultura pop, realismo)', 'Jean-Auguste-Dominique Ingres (Neoclassicismo, retratos)', 'Jean-Michel Basquiat (neo-expressionismo, arte de rua)', 'Jesper Ejsing (fantasia, arte para D&D e Magic)', 'Jim Burns (ficção científica, capas de livros)', 'Joan Miró (surrealismo abstrato)', 'John Avon (paisagens para Magic: The Gathering)', 'John Berkey (arte espacial, ficção científica)', 'John Harris (paisagens de ficção científica épicas)', 'John Singer Sargent (retratos realistas e elegantes)', 'John William Waterhouse (Pré-Rafaelita, mitologia)', 'Jordan Grimmer (paisagens de fantasia vibrantes)', 'Josan Gonzalez (cyberpunk, arte detalhada)', 'Josephine Wall (fantasia, seres místicos)', 'Katsuhiro Otomo (Akira, cyberpunk)', 'Kay Nielsen (ilustrações de contos de fadas)', 'Keith Haring (Pop Art, grafite)', 'Kelly Freas (ilustração de ficção científica clássica)', 'Kentaro Miura (Berserk, fantasia sombria)', 'Kiliana ENG (retratos de fantasia etéreos)', 'Kim Jung Gi (desenho dinâmico, perspectiva complexa)', 'Larry Elmore (arte de Dungeons & Dragons clássica)', 'Leonardo da Vinci (Renascimento, Mona Lisa)', 'Lois van Baarle (Loish, retratos digitais estilizados)', 'Magali Villeneuve (arte para Magic e Game of Thrones)', 'Makoto Shinkai (anime, paisagens hiper-realistas)', 'Marc Simonetti (arte de fantasia, A Roda do Tempo)', 'Mark Ryden (surrealismo pop, temas kitsch)', 'Mary Blair (arte conceitual da Disney, cores vibrantes)', 'Max Ernst (Surrealismo, Dadaísmo)', 'Maxfield Parrish (cores saturadas, Neoclassicismo)', 'Michael Whelan (capas de ficção científica e fantasia)', 'Michelangelo (Renascimento, Capela Sistina)', 'Mike Mignola (Hellboy, estilo de alto contraste)', 'Moebius (Jean Giraud) (ficção científica, quadrinhos europeus)', 'Naoko Takeuchi (Sailor Moon)', 'Norman Rockwell (realismo americano, cenas cotidianas)', 'Pablo Picasso (Cubismo)', 'Paul Cézanne (Pós-Impressionismo)', 'Peter Andrew Jones (capas de ficção científica retrô)', 'Peter Mohrbacher (anjos, Angelarium)', 'Pierre-Auguste Renoir (Impressionismo, retratos)', 'Pieter Bruegel, o Velho (Renascimento, cenas de camponeses)', 'Pino Daeni (pintura figurativa, mulheres)', 'Ralph McQuarrie (arte conceitual de Star Wars)', 'Raphael (Renascimento, A Escola de Atenas)', 'Rebecca Guay (fantasia, aquarela)', 'Rembrandt (Barroco, claro-escuro)', 'René Magritte (Surrealismo, O Filho do Homem)', 'Richard Corben (quadrinhos de terror e underground)', 'Rob Liefeld (quadrinhos dos anos 90, anatomia exagerada)', 'Robert McGinnis (pôsteres de James Bond, pulp)', 'Roger Dean (capas de álbuns de rock progressivo)', 'Roy Lichtenstein (Pop Art, pontos Ben-Day)', 'Rumiko Takahashi (InuYasha, Ranma ½)', 'Salvador Dalí (Surrealismo, A Persistência da Memória)', 'Samdoesarts (retratos digitais estilizados)', 'Seb McKinnon (arte sombria para Magic)', 'Shaun Tan (livros ilustrados surreais)', 'Syd Mead (designer futurista, Blade Runner)', 'Tamara de Lempicka (Art Déco, retratos)', 'Tarsila do Amaral (Modernismo brasileiro, Abaporu)', 'Ted Nasmith (ilustrações de Tolkien)', 'Terese Nielsen (arte para Magic: The Gathering)', 'Thomas Cole (Escola do Rio Hudson, paisagens)', 'Thomas Kinkade (pintor da luz, comercial)', 'Tim Burton (estilo gótico e excêntrico)', 'Tim Hildebrandt (fantasia, com seu irmão Greg)', 'Todd McFarlane (Spawn, quadrinhos)', 'Vincent Di Fate (ficção científica, naves espaciais)', 'Vincent van Gogh (Pós-Impressionismo, Noite Estrelada)', 'Wassily Kandinsky (abstracionismo)', 'Wayne Barlowe (criaturas alienígenas, demônios)', 'Wes Anderson (cinema simétrico e estilizado)', 'William Blake (Romantismo, mitologia pessoal)', 'William-Adolphe Bouguereau (Academicismo, realismo)', 'Yoshitaka Amano (Final Fantasy, arte etérea)', 'Yusuke Murata (One-Punch Man, arte dinâmica)', 'Zaha Hadid (arquitetura desconstrutivista)', 'Zdzisław Beksiński (distopia surrealista, arte sombria)'] },
+            media: { title: "Mídia/Técnica", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-teal-400"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path></svg>`, items: ['aerógrafo', 'água-forte', 'amigurumi', 'arte com areia', 'arte com pontos', 'arte com spray', 'arte com arame', 'arte de fiação', 'arte digital', 'arte em tecido', 'arte em fractal', 'arte em vidro', 'arte processual', 'arte vetorial', 'arte voxel', 'aquarela', 'assemblage', 'batik', 'bordado', 'bronze', 'capa de álbum', 'carvão', 'caseína', 'cianotipia', 'cinzeladura', 'colagem', 'colotipia', 'conceito de arte', 'crochê', 'daguerreótipo', 'decalcomania', 'desenho anatômico', 'desenho com caneta e nanquim', 'desenho com giz', 'desenho com grafite', 'desenho com lápis de cor', 'desenho com marcador', 'diorama', 'doodle', 'eletrofotografia', 'entalhe em madeira', 'escultura', 'escultura em gelo', 'esboço', 'esfuminho', 'esgrafito', 'estampa', 'estêncil', 'feltro', 'ferrotipia', 'fotobashing', 'fotograma', 'fotogravura', 'fresco', 'fumage', 'gesso', 'giz pastel', 'glitter', 'gouache', 'grafite', 'grattage', 'hachura', 'henna', 'holografia', 'ilustração', 'impressão em bloco', 'impressão giclée', 'impasto', 'kirigami', 'laca', 'lápis de cera', 'linoleogravura', 'litografia', 'low-poly', 'macramê', 'mandala', 'maquete', 'marchetaria', 'meio-tom', 'metalurgia', 'miniatura', 'monotipia', 'mosaico', 'mural', 'objeto encontrado', 'óleo sobre tela', 'origami', 'ouro', 'palekh', 'papel machê', 'papel picado', 'pastel', 'pintura acrílica', 'pintura a seco', 'pintura de areia', 'pintura em miniatura', 'pintura em seda', 'pintura em têmpera', 'pintura hard-edge', 'pirografia', 'pixel art', 'polaroid', 'ponto cruz', 'porcelana', 'pôster', 'quilling', 'rabisco', 'relevo', 'resina', 'retícula', 'serigrafia', 'stop-motion', 'tapeçaria', 'tatuagem', 'terra cota', 'tricô', 'veludo', 'vidro soprado', 'vitral', 'xilogravura'] },
+            games: { title: "Jogos", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-red-400"><path d="M2 12h3m14 0h3M12 2v3m0 14v3"></path><circle cx="12" cy="12" r="7"></circle></svg>`, items: ['Alan Wake', 'Animal Crossing', 'Apex Legends', 'Arkham Knight', 'Assassin\'s Creed', 'Baldur\'s Gate', 'Bastion', 'Bayonetta', 'BioShock', 'Bloodborne', 'Borderlands', 'Braid', 'Breath of the Wild', 'Castlevania', 'Chrono Trigger', 'Control', 'Cuphead', 'Cyberpunk 2077', 'Dark Souls', 'Darksiders', 'Dead Space', 'Death Stranding', 'Destiny', 'Deus Ex', 'Devil May Cry', 'Diablo', 'Disco Elysium', 'Dishonored', 'Donkey Kong', 'Doom', 'Dragon Age', 'Dragon Quest', 'Dwarf Fortress', 'Earthbound', 'Elden Ring', 'Elite Dangerous', 'Eve Online', 'Fable', 'Fallout', 'Final Fantasy', 'Final Fantasy Tactics', 'Fire Emblem', 'Fortnite', 'Gears of War', 'Ghost of Tsushima', 'God of War', 'Grand Theft Auto', 'Gris', 'Hades', 'Half-Life', 'Halo', 'Harvest Moon', 'Hellblade', 'Hollow Knight', 'Horizon Zero Dawn', 'Journey', 'Katamari Damacy', 'Kerbal Space Program', 'Kingdom Hearts', 'League of Legends', 'Left 4 Dead', 'Limbo', 'Magic the Gathering', 'Mario Kart', 'Mass Effect', 'Mega Man', 'Metal Gear Solid', 'Metroid', 'Minecraft', 'Monkey Island', 'Monster Hunter', 'Mortal Kombat', 'Nier: Automata', 'No Man\'s Sky', 'Octopath Traveler', 'Oddworld', 'Okami', 'Ori and the Blind Forest', 'Overwatch', 'Pac-Man', 'Paper Mario', 'Persona', 'Pokémon', 'Portal', 'Psychonauts', 'Ratchet & Clank', 'Red Dead Redemption', 'Resident Evil', 'Rimworld', 'Sea of Thieves', 'Sekiro', 'Shadow of the Colossus', 'Silent Hill', 'SimCity', 'Skyrim', 'Slay the Spire', 'Sonic the Hedgehog', 'Soul Calibur', 'Spelunky', 'Splatoon', 'StarCraft', 'Stardew Valley', 'Street Fighter', 'Super Mario', 'Super Metroid', 'Team Fortress', 'Tetris', 'The Last of Us', 'The Legend of Zelda', 'The Sims', 'The Witcher', 'Tomb Raider', 'Transistor', 'Undertale', 'Uncharted', 'Valorant', 'Warframe', 'World of Warcraft', 'Xenoblade', 'Yakuza'] },
+            formats: { title: "Formatos", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-green-400"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>`, items: ['adesivo', 'anúncio', 'avatar', 'banner', 'blueprint', 'brochura', 'caixa de cereal', 'capa de livro', 'cartão de visita', 'cartão de tarô', 'cartão postal', 'cartaz de procurado', 'carteira de motorista', 'certidão de nascimento', 'certidão de óbito', 'colorir', 'convite', 'corte transversal', 'desenho técnico', 'diagrama explodido', 'diário de campo', 'diorama', 'documentário', 'emoji', 'emoticon', 'enciclopédia', 'esboço de moda', 'esquema', 'etiqueta', 'ficha de personagem', 'filme noir', 'fita de filme', 'foto da cena do crime', 'foto de vigilância', 'fotografia de moda', 'grafite', 'hieróglifos', 'história em quadrinhos', 'ilustração botânica', 'infográfico', 'jornal', 'livro de receitas', 'livro pop-up', 'logotipo', 'manual de instruções', 'manuscrito iluminado', 'mapa do tesouro', 'modelo 3D', 'nota de dinheiro', 'panfleto', 'passaporte', 'patente', 'pôster de filme', 'propaganda', 'relatório de autópsia', 'revista', 'selo postal', 'sinalização', 'site', 'storyboard', 'tatuagem', 'telegrama', 'toy art', 'videoclipe'] },
+            aesthetics: { title: "Estética", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-yellow-400"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`, items: ['Academia Sombria (Dark Academia)', 'Afrofuturismo', 'Anacronismo', 'Anime (anos 80, 90)', 'Art Déco', 'Art Nouveau', 'Atompunk', 'Barroco', 'Bauhaus', 'Biopunk', 'Brutalismo', 'Ciber-gótico', 'Ciber-noir', 'Ciber-prep', 'Ciberdelia', 'Cyberpunk (neon, distopia futurista)', 'Decopunk', 'Dieselpunk', 'Distopia', 'Emo', 'Espacial', 'Etéreo', 'Fantasia Sombria (Dark Fantasy)', 'Fauvismo', 'Film Noir', 'Fofo (Kawaii)', 'Fotorrealismo', 'Frutiger Aero (interface de 2000)', 'Futurismo', 'Gótico', 'Grunge', 'High-tech (alta tecnologia)', 'Hip-hop (anos 90)', 'Hope-punk (otimismo)', 'Industrial', 'Infantil', 'Kitsch', 'Lofi', 'Lolita (Gótica, Doce)', 'Lunarpunk', 'Maximalismo', 'Medieval', 'Memphis (design anos 80)', 'Militar', 'Minimalismo', 'Modernismo de Meados do Século', 'Mori Kei (garota da floresta)', 'Náutico', 'Neon', 'Noir', 'Nostálgico', 'Op-Art (arte óptica)', 'Pastel', 'Pós-apocalíptico', 'Pré-histórico', 'Psicodélico', 'Punk', 'Raygun Gothic (retrô sci-fi)', 'Retrofuturismo', 'Retrowave', 'Rococó', 'Romantismo', 'Rústico', 'Sci-fi (ficção científica)', 'Seapunk', 'Skeumorfismo', 'Solarpunk (eco-futurismo)', 'Steampunk (vapor e engrenagens)', 'Surrealismo', 'Synthwave', 'Techwear (roupas técnicas)', 'Tribal', 'Tropical', 'Ukiyo-e (arte japonesa)', 'Vaporwave', 'Vitoriano', 'VSCO', 'Western (faroeste)', 'Witchcore (estética de bruxa)', 'Y2K (anos 2000)', 'Zombiecore'] },
+            periods: { title: "História", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-orange-400"><path d="M5 22h14"></path><path d="M5 2h14"></path><path d="M12 2v2.34a6 6 0 0 1 0 11.32V22"></path><path d="M12 22v-2.34a6 6 0 0 0 0-11.32V2"></path></svg>`, items: ['Anos 1920 (Loucos Anos Vinte)', 'Anos 1950', 'Anos 1960 (Era Espacial)', 'Anos 1970 (Era Disco)', 'Anos 1980', 'Anos 1990', 'Anos 2000 (Y2K)', 'Antigo Egito', 'Antiga China', 'Antiga Grécia', 'Antiga Roma', 'Belle Époque', 'Brasil Colônia', 'Corrida do Ouro', 'Era de Ouro da Pirataria', 'Era do Jazz', 'Era Elizabetana', 'Era Regencial', 'Era Vitoriana', 'Faroeste Americano', 'Guerra Civil Americana', 'Guerra Fria', 'Guerra do Vietnã', 'Idade da Pedra', 'Idade do Bronze', 'Idade do Ferro', 'Idade Média', 'Iluminismo', 'Império Asteca', 'Império Bizantino', 'Império Inca', 'Império Mongol', 'Império Otomano', 'Império Persa', 'Império Romano', 'Japão Feudal (Período Edo)', 'Japão Meiji', 'Pré-colombiano', 'Primeira Guerra Mundial', 'Proibição (Lei Seca)', 'Renascimento', 'Revolução Francesa', 'Revolução Industrial', 'Revolução Russa', 'Segunda Guerra Mundial'] }
+        };
+        const appData = { geral: { genero: ["Não especificado", "Masculino", "Feminino", "Não-binário", "Andrógino", "Gênero-fluido", "Intersexo", "Agênero", "Dois-espíritos", "Outro"], racaEspecie: { "Não especificado": ["Não especificado"], "Humanas": ["Humano (Caucasiano)", "Humano (Asiático)", "Humano (Africano)", "Humano (Latino)", "Humano (Indígena)", "Humano (Miscigenado)", "Humano (Nórdico)"], "Fantasia Clássica": ["Elfo (Alto Elfo)", "Elfo (Elfo da Floresta)", 'Elfo (Elfo do Mar)', "Elfo (Elfo Negro/Drow)", "Anão (da Montanha)", "Anão (da Colina)", "Orc", "Meio-Orc", "Goblin", "Hobgoblin", "Bugbear", "Hobbit/Halfling", "Gnomo (da Floresta)", "Gnomo (das Rochas)", "Tiefling", "Aasimar", "Genasi (do Fogo, Água, Ar, Terra)", "Draconato", "Homem-Fera (Lobisomem, Minotauro, Povo-Gato, Povo-Lagarto)", "Gigante", "Troll", "Ogro", "Meio-Elfo"], "Ficção Científica": ["Ciborgue", "Androide/Sintético", "Humano Aprimorado", "Alienígena (Reptiliano)", "Alienígena (Insetoide)", "Alienígena (Humanoide)", "Alienígena (Aquático)", "Alienígena (Aviário)", "Alienígena (Energético/Não-corpóreo)", "Alienígena (Silicoide)", "Mutante", "Pós-Humano", "Clone"], "Mitológicas": ["Anjo", "Arcanjo", "Demônio", "Diabo", "Súcubo/Íncubo", "Vampiro", "Fada (Pixie, Sprite)", "Sereia/Tritão", "Centauro", "Sátiro/Fauno", "Harpia", "Górgona", "Elemental (Fogo, Água, Ar, Terra, Gelo, Raio)", "Djinn/Gênio", "Kami", "Yokai (Kitsune, Oni, Tengu)"], "Outras": ["Morto-vivo (Zumbi, Esqueleto, Liche, Fantasma, Múmia)", "Construto (Golem de Pedra, Carne, Ferro)", "Autômato (Mecanismo de Relojoaria)", "Planta Antropomórfica (Dríade, Ent)", "Povo-Cogumelo", "Slime/Amorfo", "Doppelgänger/Metamorfo"] }, arquetipo: ["Não especificado", "O Herói", "O Mentor", "O Guardião do Umbral", "O Arauto", "O Metamorfo", "A Sombra", "O Aliado/Companheiro", "O Trapaceiro/Pícaro", "A Donzela/Donzelo em Perigo", "O Vilão", "O Anti-Herói", "A Criança Divina", "A Grande Mãe", "O Sábio Velho", "O Inocente", "O Explorador", "O Rebelde", "O Amante", "O Criador", "O Governante", "O Mago/Feiticeiro", "O Bobo da Corte"] }, aparencia: { tipoCorpo: ["Não especificado", "Esguio", "Atlético", "Musculoso(a)", "Corpulento(a)", "Magro(a)", "Ossudo(a)", "Curvilíneo(a)", "Plus-size", "Pequeno(a)/Baixo(a)", "Alto(a)/Gigante", "Robusto(a)", "Andrógino", "Delicado(a)", "Frágil", "Infantil", "Idoso(a)/Envelhecido", "Cicatrizado", "Deformado"], penteado: { "Não especificado": ["Não especificado"], "Comprimentos": ["Careca", "Muito Curto (Raspado/Buzzcut)", "Curto", "Médio (altura dos ombros)", "Longo", "Muito Longo (cintura ou mais)"], "Estilos": ["Liso", "Ondulado", "Cacheado", "Crespo/Afro", "Tranças (Boxeadoras, Nagô, etc.)", "Dreadlocks", "Rabo de Cavalo (Alto, Baixo)", "Coque (Alto, Despojado)", "Topete", "Moicano", "Undercut", "Sidecut", "Assimétrico", "Repicado", "Bagunçado/Despojado", "Alinhado/Geométrico", "Com Franja (Reta, Lateral, Cortina)"], "Cores Exóticas": ["Platinado", "Azul Elétrico", "Verde Neon", "Rosa Choque", "Multicolorido/Arco-íris"] } }, papelVestimenta: { vestimentaPrincipal: ["Não especificado", "Roupas Casuais Modernas", "Roupas de Grife", "Traje Formal (Gala, Terno)", "Uniforme (Escolar, Militar, Profissional)", "Roupas de Aventura/Explorador", "Roupas de Camponês/Plebeu", "Vestes Nobres/Reais", "Vestes Mágicas/de Feiticeiro", "Hábito Religioso/de Monge", "Traje Futurista/Sci-Fi", "Traje Pós-Apocalíptico", "Roupas Tribais/Primitivas", "Kimono/Yukata", "Qipao/Cheongsam", "Sari", "Toga", "Roupas de Couro/Punk"], armadura: { "Não especificado": ["Não especificado", "Sem Armadura"], "Leve": ["Couro Batido", "Corselete de Couro", "Gambeson/Acolchoada", "Armadura de Seda"], "Média": ["Cota de Malha", "Brigandina", "Loriga segmentata", "Peitoral de Aço", "Escamas de Dragão"], "Pesada": ["Armadura de Placas Completa", "Armadura de Campo Gótica", "Armadura Samurai (O-Yoroi)"], "Ficção Científica": ["Traje de Combate Leve (Kevlar)", "Armadura de Polímero", "Exoesqueleto Leve", "Power Armor", "Armadura de Energia"], "Exótica": ["Armadura de Osso", "Armadura de Quitina", "Armadura de Cristal", "Armadura Viva/Simbionte"] } }, equipamentos: { armas: { "Não especificado": ["Não especificado", "Desarmado(a)"], "Lâminas": ["Espada Longa", "Espada Curta", "Adaga/Faca", "Katana", "Wakizashi", "Cimitarra", "Rapieira", "Gládio", "Montante/Zweihänder", "Sabre de Luz"], "Machados": ["Machado de Batalha", "Machadinha", "Machado de Duas Mãos"], "Impacto": ["Maça", "Mangual", "Martelo de Guerra", "Clava", "Bastão (Bo Staff)"], "Haste": ["Lança", "Alabarda", "Glaive", "Tridente", "Pique"], "Distância (Arco/Besta)": ["Arco Curto", "Arco Longo", "Besta Leve", "Besta Pesada", "Arco Composto"], "Distância (Fogo/Pólvora)": ["Pistola Flintlock", "Mosquete", "Revólver", "Rifle"], "Distância (Moderno/Sci-Fi)": ["Pistola Semiautomática", "Submetralhadora", "Fuzil de Assalto", "Rifle de Precisão", "Lança-granadas", "Pistola Laser", "Rifle de Plasma", "Canhão de Partículas"], "Exóticas": ["Chicote", "Nunchaku", "Kusarigama", "Manoplas com Lâminas", "Shuriken/Kunai", "Bumerangue de Batalha", "Grimório/Tomo Mágico"] }, acessoriosItens: ["Mochila", "Bolsa de Cinto", "Amuleto/Talismã", "Anel Mágico", "Brincos", "Piercings", "Capa/Manto com Capuz", "Chapéu/Elmo", "Coroa/Tiara", "Óculos/Monóculo", "Visor Tecnológico", "Máscara", "Luvas/Manoplas", "Bandoleira", "Cantil", "Mapa/Pergaminho", "Bússola/Astroábio", "Orbe de Cristal", "Varinha Mágica", "Cajado", "Ferramentas de Ladrão", "Kit de Alquimia"] }, estiloVisual: { inspiracaoArtista: ["Não especificado", "Greg Rutkowski (fantasia épica, D&D)", "Alphonse Mucha (Art Nouveau, cartazes)", "H.R. Giger (biomecânico, Alien)", "Frank Frazetta (fantasia heroica, barbáros)", "Yoshitaka Amano (Final Fantasy, etéreo)", "Zdzisław Beksiński (distopia surrealista, sombrio)", "Moebius (ficção científica, quadrinhos europeus)", "Hayao Miyazaki (Studio Ghibli)", "James Jean (surreal, detalhado)", "J.C. Leyendecker (ilustração da Era de Ouro)"], movimentoArtistico: ["Não especificado", "Renascimento", "Barroco", "Rococó", "Romantismo", "Realismo", "Impressionismo", "Pós-Impressionismo", "Simbolismo", "Surrealismo", "Expressionismo", "Cubismo", "Futurismo", "Art Nouveau", "Art Deco", "Pop Art", "Minimalismo"], enquadramentoCamera: ["Não especificado", "Plano Detalhe (Extreme Close-up)", "Primeiro Plano (Close-up)", "Plano Médio", "Plano Americano", "Plano Inteiro (Full Shot)", "Plano Conjunto", "Plano Geral (Long Shot)", "Grande Plano Geral (Extreme Long Shot)", "Contra-plongée (ângulo baixo)", "Plongée (ângulo alto)", "Plano Zenital (de cima para baixo)", "Olho de Minhoca (de baixo para cima)", "Olho de Pássaro (vista aérea)", "Plano Holandês (inclinado)", "Sobre o Ombro (Over the Shoulder)"], estiloLente: ["Não especificado", "Lente Padrão (50mm)", "Lente Grande Angular", "Lente Teleobjetiva", "Lente Olho de Peixe", "Lente Macro", "Foco Suave", "Profundidade de Campo Rasa", "Profundidade de Campo Ampla", "Bokeh Acentuado", "Tilt-Shift", "Lente Anamórfica"], efeitosVisuais: ["Não especificado", "HDR (Alto Alcance Dinâmico)", "Resolução 4K/8K/16K", "Foco Nítido", "Desfoque de Movimento", "Grão Cinematográfico", "Vazamento de Luz", "Lens Flare", "Vinheta", "Aberração Cromática", "Glitch Art", "Scanlines (linhas de tela)", "Efeito VHS", "Bloom (brilho intenso)", "Partículas (poeira, faíscas, magia, cinzas)", "Distorção de Calor"], iluminacaoAtmosfera: ["Não especificado", "Luz do Dia (Sol Forte)", "Luz Difusa (Nublado)", "Crepúsculo/Hora Dourada", "Hora Azul", "Noite (Luar)", "Noite (Urbana/Néon)", "Iluminação de Estúdio (3 pontos)", "Luz de Velas/Fogueira", "Luz Volumétrica/Raios de Luz", "Contraluz (iluminação de contorno)", "Iluminação Dramática (Claro-escuro)", "Silhueta", "Névoa/Neblina", "Chuva/Tempestade", "Neve/Nevasca", "Tempestade de Areia", "Subaquático", "Espaço Sideral", "Bioluminescência"] }, narrativa: { temaGeral: ["Não especificado", "Aventura", "Batalha Épica", "Combate Singular", "Exploração", "Descoberta", "Mistério", "Investigação", "Sobrevivência", "Terror", "Romance", "Tragédia", "Comédia", "Celebração/Festa", "Ritual Mágico", "Coroação", "Fuga"], cenarioDetalhado: { "Não especificado": ["Não especificado"], "Natureza": ["Floresta Densa e Antiga", "Pântano Assombrado", "Montanhas Nevadas", "Pico de Vulcão", "Deserto Árido", "Oásis Exuberante", "Selva Tropical", "Caverna de Cristais", "Recife de Coral Subaquático", "Campo de Flores Selvagens"], "Urbano": ["Castelo Medieval em Ruínas", "Cidade Futurista Distópica", "Metrópole Cyberpunk Iluminada por Néon", "Mercado Medieval Movimentado", "Viela Sombria e Chuvosa", "Salão do Trono Opulento", "Biblioteca Antiga e Poeirenta"], "Exótico/Fantástico": ["Cidade Flutuante nos Céus", "Reino Subterrâneo dos Anões", "Palácio de Gelo", "Dimensão Alienígena Bizarra", "Campo de Batalha Astral", "Interior de uma Nave Espacial", "Ruínas de uma Civilização Antiga"] }, acaoPose: { "Não especificado": ["Não especificado", "Pose Neutra/Retrato"], "Estáticas": ["Sentado(a) em um trono", "Meditando", "Lendo um livro antigo", "Observando o horizonte", "Apoiado(a) em uma parede", "De joelhos, em súplica ou prece", "Oferecendo um objeto"], "Dinâmicas": ["Correndo desesperadamente", "Saltando sobre um abismo", "Brandindo uma arma", "Lançando um feitiço", "Esquivando de um ataque", "Escalando uma montanha", "Dançando", "Sussurrando um segredo", "Pilotando um veículo"] }, expressaoFacial: ["Não especificado", "Neutra", "Sorrindo (Sutil, Largo)", "Gargalhando", "Triste", "Chorando", "Irritado(a)", "Enfurecido(a)", "Surpreso(a)", "Chocado(a)", "Assustado(a)", "Curioso(a)", "Desconfiado(a)", "Confiante/Arrogante", "Cansado(a)/Exausto(a)", "Sereno/Pacífico", "Concentrado(a)"] } };
+        
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast-notification');
+            if(!toast) return;
+            toast.textContent = message;
+            toast.className = 'fixed bottom-5 right-5 text-white py-3 px-6 rounded-lg shadow-xl text-sm z-50 transition-all duration-300 opacity-0 transform translate-y-10';
+            toast.classList.remove('opacity-0', 'translate-y-10');
+            switch (type) {
+                case 'success': toast.classList.add('bg-green-600'); break;
+                case 'error': toast.classList.add('bg-red-600'); break;
+                case 'warning': toast.classList.add('bg-amber-500'); break;
+                default: toast.classList.add('bg-violet-600'); break;
+            }
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-10');
+            }, 3000);
+        }
+
+        function copyUsingExecCommand(textareaElement) {
+            if (!textareaElement || !textareaElement.value) {
+                showToast('Nada para copiar.', 'warning');
+                return;
+            }
+            textareaElement.select();
+            textareaElement.setSelectionRange(0, 99999);
+            try {
+                if(document.execCommand('copy')) showToast('Prompt copiado!', 'success');
+                else showToast('Falha ao copiar o prompt.', 'error');
+            } catch (err) {
+                showToast('Erro ao copiar o prompt.', 'error');
+            }
+            window.getSelection().removeAllRanges();
+        }
+        
+        function createAccordionButton(key, title, icon, type) {
+            return `<div class="category-wrapper">
+                        <button data-key="${key}" data-type="${type}" class="category-button w-full flex items-center justify-start p-3 bg-slate-800 rounded-lg shadow-md hover:bg-slate-700/50 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all duration-200 h-full">
+                            ${icon} <span class="ml-3 text-sm font-semibold text-slate-300">${title}</span>
+                        </button>
+                        <div id="accordion-${key}" class="accordion-content bg-slate-800/50 rounded-b-lg px-4 -mt-1">
+                        </div>
+                    </div>`;
+        }
+
+        function createStyleAccordionContent(key, targetElement) {
+            let itemsHTML = '';
+            stylePromptData[key].items.sort().forEach(item => {
+                const isSelected = styleSelectedTerms.has(item) ? 'selected-item' : '';
+                itemsHTML += `<a href="#" class="style-term-item block px-3 py-1.5 text-sm text-slate-200 hover:bg-violet-500/50 rounded-md ${isSelected}" data-term="${item}">${item}</a>`;
+            });
+            targetElement.innerHTML = `<div class="max-h-64 overflow-y-auto">${itemsHTML}</div>`;
+        }
+
+        function createFormAccordionContent(sectionId, targetElement) {
+            const sectionsHTML = {
+                identidade: `<div class="space-y-4"><div><label for="nomePersonagem" class="block text-xs font-medium text-slate-400 mb-1">Nome</label><input type="text" id="nomePersonagem" name="nomePersonagem"></div><div><label for="genero" class="block text-xs font-medium text-slate-400 mb-1">Gênero</label><select id="genero" name="genero"></select></div><div><label for="racaEspecie" class="block text-xs font-medium text-slate-400 mb-1">Raça/Espécie</label><select id="racaEspecie" name="racaEspecie"></select></div><div><label for="arquetipo" class="block text-xs font-medium text-slate-400 mb-1">Arquétipo</label><select id="arquetipo" name="arquetipo"></select></div><div><label for="caracteristicasFisicas" class="block text-xs font-medium text-slate-400 mb-1">Características Essenciais</label><textarea id="caracteristicasFisicas" name="caracteristicasFisicas" rows="3"></textarea></div></div>`,
+                aparencia: `<div class="grid grid-cols-1 gap-4"><div><label for="tipoCorpo" class="block text-xs font-medium text-slate-400 mb-1">Tipo de Corpo</label><select id="tipoCorpo" name="tipoCorpo"></select></div><div><label for="corPele" class="block text-xs font-medium text-slate-400 mb-1">Cor da Pele</label><input type="text" id="corPele" name="corPele"></div><div><label for="corCabelo" class="block text-xs font-medium text-slate-400 mb-1">Cor do Cabelo</label><input type="text" id="corCabelo" name="corCabelo"></div><div><label for="penteado" class="block text-xs font-medium text-slate-400 mb-1">Penteado</label><select id="penteado" name="penteado"></select></div><div><label for="corOlhos" class="block text-xs font-medium text-slate-400 mb-1">Cor dos Olhos</label><input type="text" id="corOlhos" name="corOlhos"></div></div>`,
+                vestimenta: `<div class="space-y-4"><div><label for="vestimentaPrincipal" class="block text-xs font-medium text-slate-400 mb-1">Vestimenta Principal</label><select id="vestimentaPrincipal" name="vestimentaPrincipal"></select></div><div><label for="armadura" class="block text-xs font-medium text-slate-400 mb-1">Armadura</label><select id="armadura" name="armadura"></select></div></div>`,
+                equipamentos: `<div class="space-y-4"><div><label for="armas" class="block text-xs font-medium text-slate-400 mb-1">Armas</label><select id="armas" name="armas"></select></div><div><label class="block text-sm font-medium text-slate-300 mb-2">Acessórios/Itens</label><div id="acessoriosItens" class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-slate-700/50 rounded-md"></div></div></div>`,
+                estilo: `<div class="space-y-4"><div><label for="inspiracaoArtista" class="block text-xs font-medium text-slate-400 mb-1">Inspiração Artística</label><select id="inspiracaoArtista" name="inspiracaoArtista"></select></div><div><label for="movimentoArtistico" class="block text-xs font-medium text-slate-400 mb-1">Movimento Artístico</label><select id="movimentoArtistico" name="movimentoArtistico"></select></div><div><label for="enquadramentoCamera" class="block text-xs font-medium text-slate-400 mb-1">Enquadramento</label><select id="enquadramentoCamera" name="enquadramentoCamera"></select></div><div><label for="estiloLente" class="block text-xs font-medium text-slate-400 mb-1">Lente</label><select id="estiloLente" name="estiloLente"></select></div><div><label for="efeitosVisuais" class="block text-xs font-medium text-slate-400 mb-1">Efeitos</label><select id="efeitosVisuais" name="efeitosVisuais"></select></div><div><label for="iluminacaoAtmosfera" class="block text-xs font-medium text-slate-400 mb-1">Iluminação</label><select id="iluminacaoAtmosfera" name="iluminacaoAtmosfera"></select></div></div>`,
+                narrativa: `<div class="space-y-4"><div><label for="temaGeral" class="block text-xs font-medium text-slate-400 mb-1">Tema Geral</label><select id="temaGeral" name="temaGeral"></select></div><div><label for="cenarioDetalhado" class="block text-xs font-medium text-slate-400 mb-1">Cenário</label><select id="cenarioDetalhado" name="cenarioDetalhado"></select></div><div><label for="acaoPose" class="block text-xs font-medium text-slate-400 mb-1">Ação/Pose</label><select id="acaoPose" name="acaoPose"></select></div><div><label for="expressaoFacial" class="block text-xs font-medium text-slate-400 mb-1">Expressão Facial</label><select id="expressaoFacial" name="expressaoFacial"></select></div></div>`,
+                default: `<p class="text-slate-400">Conteúdo para a seção '${sectionId}' em desenvolvimento.</p>`
+            };
+            targetElement.innerHTML = sectionsHTML[sectionId] || sectionsHTML.default;
+        }
+
+        function populateSelect(selectId, options, hasOptgroups = false) {
+            const selectElement = document.getElementById(selectId);
+            if (!selectElement) return;
+            selectElement.innerHTML = ''; 
+            if (hasOptgroups) {
+                for (const groupLabel in options) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = groupLabel;
+                    options[groupLabel].forEach(optionValue => {
+                        const option = document.createElement('option');
+                        option.value = `${groupLabel}|${optionValue}`;
+                        option.textContent = optionValue;
+                        optgroup.appendChild(option);
+                    });
+                    selectElement.appendChild(optgroup);
+                }
+            } else {
+                options.forEach(optionValue => {
+                    const option = document.createElement('option');
+                    option.value = optionValue;
+                    option.textContent = optionValue;
+                    selectElement.appendChild(option);
+                });
+            }
+        }
+        
+        function populateCheckboxes(containerId, options) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            options.forEach(optionValue => {
+                const label = document.createElement('label');
+                label.className = 'flex items-center text-sm text-slate-200 cursor-pointer';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'form-checkbox h-4 w-4 text-violet-600 bg-gray-800 border-gray-600 rounded focus:ring-violet-500';
+                checkbox.value = optionValue;
+                checkbox.name = containerId;
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(` ${optionValue}`));
+                container.appendChild(label);
+            });
+        }
+
+        function populateAllCharacterFields() {
+             populateSelect('genero', appData.geral.genero);
+             populateSelect('racaEspecie', appData.geral.racaEspecie, true);
+             populateSelect('arquetipo', appData.geral.arquetipo);
+             populateSelect('tipoCorpo', appData.aparencia.tipoCorpo);
+             populateSelect('penteado', appData.aparencia.penteado, true);
+             populateSelect('vestimentaPrincipal', appData.papelVestimenta.vestimentaPrincipal);
+             populateSelect('armadura', appData.papelVestimenta.armadura, true);
+             populateSelect('armas', appData.equipamentos.armas, true);
+             populateSelect('inspiracaoArtista', appData.estiloVisual.inspiracaoArtista);
+             populateSelect('movimentoArtistico', appData.estiloVisual.movimentoArtistico);
+             populateSelect('enquadramentoCamera', appData.estiloVisual.enquadramentoCamera);
+             populateSelect('estiloLente', appData.estiloVisual.estiloLente);
+             populateSelect('efeitosVisuais', appData.estiloVisual.efeitosVisuais);
+             populateSelect('iluminacaoAtmosfera', appData.estiloVisual.iluminacaoAtmosfera);
+             populateSelect('temaGeral', appData.narrativa.temaGeral);
+             populateSelect('cenarioDetalhado', appData.narrativa.cenarioDetalhado, true);
+             populateSelect('acaoPose', appData.narrativa.acaoPose, true);
+             populateSelect('expressaoFacial', appData.narrativa.expressaoFacial);
+             populateCheckboxes('acessoriosItens', appData.equipamentos.acessoriosItens);
+        }
+        
+        function generatePrompt(type) {
+            let compactParts = [];
+            let detailedParts = [];
+            
+            const cleanValue = (value) => value.split(' (')[0];
+
+            if (styleSelectedTerms.size > 0) {
+                const styleString = Array.from(styleSelectedTerms).map(cleanValue).join(', ');
+                compactParts.push(styleString);
+                detailedParts.push(`Estilos Visuais: ${styleString}`);
+            }
+            const formData = new FormData(document.getElementById('characterForm'));
+            
+            for (let [key, value] of formData.entries()) {
+                 const element = document.getElementById(key);
+                 if (element && element.type !== 'checkbox' && value && value.trim() !== "" && value !== "Não especificado" && (element.tagName !== 'SELECT' || element.options[element.selectedIndex]?.textContent !== 'Não especificado')) {
+                      let compactValue = value.includes('|') ? value.split('|')[1] : value;
+                      compactValue = cleanValue(compactValue);
+                      compactParts.push(compactValue.trim());
+                      const label = document.querySelector(`label[for="${key}"]`)?.textContent || key;
+                      detailedParts.push(`${label}: ${compactValue.trim()}`);
+                 }
+            }
+            
+            const acessorios = Array.from(document.querySelectorAll('input[name="acessoriosItens"]:checked')).map(cb => cb.value);
+            if(acessorios.length > 0) {
+                const acessoriosStr = acessorios.join(', ');
+                compactParts.push(acessoriosStr);
+                detailedParts.push(`Acessórios: ${acessoriosStr}`);
+            }
+            
+            const finalPrompt = type === 'detailed' ? detailedParts.join(". ") : compactParts.join(", ");
+            document.getElementById('generatedPrompt').value = finalPrompt;
+            if (finalPrompt) showToast(`Prompt ${type} gerado com sucesso!`, 'success');
+            else showToast('Nenhuma informação selecionada para gerar o prompt.', 'warning');
+        }
+
+        function toggleAccordion(key) {
+            const accordion = document.getElementById(`accordion-${key}`);
+            if (!accordion) return;
+            const isVisible = accordion.classList.contains('open');
+            if (openAccordion && openAccordion !== accordion) {
+                openAccordion.classList.remove('open');
+            }
+            if (isVisible) {
+                accordion.classList.remove('open');
+                openAccordion = null;
+            } else {
+                accordion.classList.add('open');
+                openAccordion = accordion;
+            }
+        }
+        
+        function setupCategoryEventListeners() {
+            document.getElementById('categories-container').addEventListener('click', (e) => {
+                const button = e.target.closest('.category-button');
+                if (button) {
+                    e.preventDefault();
+                    toggleAccordion(button.dataset.key);
+                }
+                if (e.target.matches('.style-term-item')) {
+                    e.preventDefault();
+                    const term = e.target.dataset.term;
+                    e.target.classList.toggle('selected-item');
+                    if (styleSelectedTerms.has(term)) styleSelectedTerms.delete(term);
+                    else styleSelectedTerms.add(term);
+                }
+            });
+        }
+        
+        function randomizeAllFields() {
+            const form = document.getElementById('characterForm');
+            const selects = form.querySelectorAll('select');
+            selects.forEach(select => {
+                const startIndex = select.options.length > 1 && select.options[0].value.includes("Não especificado") ? 1 : 0;
+                if (select.options.length > startIndex) {
+                    const randomIndex = Math.floor(Math.random() * (select.options.length - startIndex)) + startIndex;
+                    select.selectedIndex = randomIndex;
+                }
+            });
+            
+            styleSelectedTerms.clear();
+            document.querySelectorAll('.style-term-item.selected-item').forEach(el => el.classList.remove('selected-item'));
+
+            for (const key in stylePromptData) {
+                const items = stylePromptData[key].items;
+                const randomIndex = Math.floor(Math.random() * items.length);
+                const randomTerm = items[randomIndex];
+                styleSelectedTerms.add(randomTerm);
+                const termElement = document.querySelector(`.style-term-item[data-term="${randomTerm}"]`);
+                if(termElement) termElement.classList.add('selected-item');
+            }
+
+            showToast('Características embaralhadas!', 'success');
+        }
+
+        function setupGlobalEventListeners() {
+            document.getElementById('clearAllBtn').addEventListener('click', () => {
+                document.getElementById('characterForm').reset();
+                styleSelectedTerms.clear();
+                document.querySelectorAll('.selected-item').forEach(el => el.classList.remove('selected-item'));
+                document.getElementById('generatedPrompt').value = '';
+                showToast('Todos os campos e seleções foram limpos!', 'info');
+            });
+            document.getElementById('generateCompactPromptBtn').addEventListener('click', () => generatePrompt('compact'));
+            document.getElementById('generateDetailedPromptBtn').addEventListener('click', () => generatePrompt('detailed'));
+            document.getElementById('copyPromptBtn').addEventListener('click', () => copyUsingExecCommand(document.getElementById('generatedPrompt')));
+            document.getElementById('randomizeAllBtn').addEventListener('click', randomizeAllFields);
+            
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const sideMenu = document.getElementById('sidebar');
+            const closeMenuBtn = document.getElementById('close-sidebar-btn');
+            hamburgerBtn.addEventListener('click', () => sideMenu.classList.remove('-translate-x-full'));
+            closeMenuBtn.addEventListener('click', () => sideMenu.classList.add('-translate-x-full'));
+        }
+        
+        function renderAllCategories() {
+            const container = document.getElementById('categories-container');
+            container.innerHTML = '';
+            
+            const allCategories = [
+                { id: 'identidade', title: 'Identidade', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-violet-400"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>`, type: 'form' },
+                { id: 'aparencia', title: 'Aparência', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-violet-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.39m3.421 3.415a3 3 0 0 0 5.78-1.128 2.25 2.25 0 0 1 2.4-2.245 4.5 4.5 0 0 0-8.4 2.245c0 .399.078.78.22 1.128Zm0 0l3.388 1.62m-5.043-.025a15.994 15.994 0 0 1-1.622-3.39m3.421 3.415Z" /></svg>`, type: 'form' },
+                { id: 'vestimenta', title: 'Vestimenta', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-violet-400"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.122 2.122l7.81-7.81" /></svg>`, type: 'form' },
+                { id: 'equipamentos', title: 'Equipamentos', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-violet-400"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.664 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.631 5.631L21.25 9.5l-5.208-5.209L9.5 11.042l5.63 5.63Z" /></svg>`, type: 'form' },
+                { id: 'narrativa', title: 'Narrativa', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-violet-400"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`, type: 'form' },
+                { id: 'artists', title: 'Artistas', icon: stylePromptData.artists.icon, type: 'style' },
+                { id: 'estilo', title: 'Estilo Visual', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-violet-400"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672Zm-7.518-.267A8.25 8.25 0 1 1 20.25 10.5M8.288 14.212A5.25 5.25 0 1 1 17.25 10.5" /></svg>`, type: 'form' },
+                { id: 'media', title: 'Mídia/Técnica', icon: stylePromptData.media.icon, type: 'style' },
+                { id: 'aesthetics', title: 'Estética', icon: stylePromptData.aesthetics.icon, type: 'style' },
+                { id: 'games', title: 'Jogos', icon: stylePromptData.games.icon, type: 'style' },
+                { id: 'formats', title: 'Formatos', icon: stylePromptData.formats.icon, type: 'style' },
+                { id: 'periods', title: 'História', icon: stylePromptData.periods.icon, type: 'style' }
+            ];
+
+            allCategories.forEach(cat => {
+                container.innerHTML += createAccordionButton(cat.id, cat.title, cat.icon, cat.type);
+            });
+
+            // Preenche o conteúdo agora que os contêineres existem
+            allCategories.forEach(cat => {
+                const accordionContent = document.getElementById(`accordion-${cat.id}`);
+                if (cat.type === 'style') {
+                    createStyleAccordionContent(cat.id, accordionContent);
+                } else {
+                    createFormAccordionContent(cat.id, accordionContent);
+                }
+            });
+
+            populateAllCharacterFields();
+        }
+
+        function initializeUI() {
+            renderAllCategories();
+            setupCategoryEventListeners();
+            setupGlobalEventListeners();
+        }
+        
+        initializeUI();
+    });
+    </script>
+</body>
+</html>

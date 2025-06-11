@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Chosen Palette: Dark Violet Theme -->
+    <!-- Application Structure Plan: A aplicação usa uma barra lateral persistente em telas maiores e um menu hambúrguer em telas menores. Todas as categorias estão listadas na barra lateral e funcionam como um acordeão, expandindo para mostrar as opções. Esta estrutura foi escolhida para melhorar o fluxo de trabalho, mantendo as ferramentas sempre visíveis e acessíveis em desktops, ao mesmo tempo que otimiza o espaço em telas móveis. -->
+    <!-- Visualization & Content Choices: Informações do Gerador de Estilos -> Objetivo: Seleção Rápida -> Apresentação: Listas clicáveis em um painel acordeão -> Interação: Destaque visual no item selecionado para feedback imediato -> Justificação: Método rápido e visual para compor prompts com termos pré-definidos. / Informações do Criador de Personagens -> Objetivo: Entrada de Dados Guiada -> Apresentação: Campos de formulário (select, input, textarea) agrupados por tema em painéis acordeão -> Interação: Preenchimento de formulário padrão -> Justificação: Usa padrões de UI familiares para coletar dados detalhados de forma estruturada. / Ambas as fontes de dados são combinadas em uma <textarea> final. -> CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <title>Estúdio de Prompts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #f3f4f6; }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
+        
+        .accordion-content { transition: max-height 0.3s ease-out, opacity 0.3s ease-out, padding 0.3s ease-out; overflow: hidden; max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; }
+        .accordion-content.open { max-height: 1000px; opacity: 1; padding-top: 1rem; padding-bottom: 1rem;}
+        
+        .selected-item { background-color: #4f46e5 !important; color: #fff !important; font-weight: 600; }
+
+        select, input[type="text"], textarea {
+            background-color: #374151; border: 1px solid #4b5563; color: #f3f4f6; border-radius: 0.5rem; width: 100%; padding: 0.5rem;
+        }
+        select:focus, input:focus, textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 2px #4f46e5; outline: none; }
+        
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6">
+
+    <header class="flex justify-between items-center mb-6 pb-4 border-b border-slate-700">
+        <h1 class="font-orbitron text-2xl md:text-3xl font-bold text-violet-400">Estúdio de Prompts</h1>
+        <button id="hamburger-btn" class="p-2 rounded-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500 md:hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+    </header>
+
+    <div class="md:grid md:grid-cols-12 md:gap-8">
+        
+        <aside id="sidebar" class="md:col-span-4 lg:col-span-3 fixed md:relative top-0 left-0 h-full w-80 md:w-auto bg-slate-900 md:bg-transparent shadow-xl md:shadow-none transform -translate-x-full md:translate-x-0 z-40 p-4 md:p-0">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-700 md:hidden">
+                 <h2 class="font-orbitron text-xl text-violet-300">Categorias</h2>
+                 <button id="close-sidebar-btn" class="p-2 rounded-md hover:bg-slate-700">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                 </button>
+            </div>
+            <div class="h-full overflow-y-auto pr-2">
+                 <form id="characterForm">
+                    <div id="categories-container" class="space-y-2">
+                    </div>
+                </form>
+            </div>
+        </aside>
+
+        <main class="md:col-span-8 lg:col-span-9">
+            <div class="bg-slate-800/50 backdrop-blur-sm p-4 rounded-lg shadow-xl mb-6 sticky top-4 z-10">
+                <label for="generatedPrompt" class="block text-sm font-medium text-slate-300 mb-2">Seu Prompt Final:</label>
+                <textarea id="generatedPrompt" rows="8" class="w-full p-3 bg-slate-900 border-slate-700 rounded-lg text-slate-200 text-sm" placeholder="Abra o menu, selecione os termos e clique em 'Gerar Prompt'..."></textarea>
+                <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    <button id="generateCompactPromptBtn" class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-3 rounded-lg shadow-xl transition-transform hover:scale-105 text-sm">Gerar Compacto</button>
+                    <button id="generateDetailedPromptBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg shadow-xl transition-transform hover:scale-105 text-sm">Gerar Detalhado</button>
+                    <button id="copyPromptBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Copiar</button>
+                    <button id="randomizeAllBtn" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Embaralhar</button>
+                    <button id="clearAllBtn" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Limpar</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-notification" class="fixed bottom-5 right-5 bg-violet-600 text-white py-3 px-6 rounded-lg shadow-xl text-sm z-50 transition-all duration-300 opacity-0 transform translate-y-10"></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        let openAccordion = null;
+        let styleSelectedTerms = new Set();
+        let toastTimeout;
+        const stylePromptData = {
+             artists: { title: "Artistas", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-indigo-400"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M15.23 5.23L9.17 10.17c-.4.39-.4 1.02 0 1.41l5.3 5.3c.39.39 1.02.39 1.41 0l.71-.71c.39-.39.39-1.02 0-1.41L11.7 10.88l4.24-4.24c.39-.39.39-1.02 0-1.41l-.71-.71c-.39-.4-.08-1.03.31-1.42z"/></svg>`, items: ['poster by Saul Bass', 'still life by Pieter Claesz', 'staircase by M.C. Escher', 'poster by Shepard Fairey', 'flower painting by Martin Johnson Heade', 'ocean by Katsushika Hokusai', 'statue carving by Kris Kuksi', 'butterfly drawing by Maria Sibylla Merian', 'pattern by William Morris', 'floral bouquet by Marianne North', 'map by Abraham Ortelius', 'cat painting by Theophile Steinlen', 'stained glass by Louis Comfort Tiffany', 'symbol drawing by Rubem Valentim', 'Neal Adams', 'Charles Addams', 'Esao Andrews', 'Rolf Armstrong', 'Cicely Mary Barker', 'Wayne Barlowe', 'Ivan Aivazovsky', 'Leonid Afremov', 'Alois Arnegger', 'Giotto Di Bondone', 'Andrei Rublev', 'Jan van Eyck', 'Fra Angelico', 'Rogier van der Weyden', 'Jean Fouquet', 'Sandro Botticelli', 'Hieronymus Bosch', 'Leonardo da Vinci', 'Albrecht Dürer', 'Michelangelo', 'Raphael Sanzio', 'Titian', 'Hans Holbein the Younger', 'Tintoretto', 'Pieter Bruegel the Elder', 'Giuseppe Arcimboldo', 'Sofonisba Anguissola', 'El Greco', 'Caravaggio', 'Peter Paul Rubens', 'Frans Hals', 'Artemisia Gentileschi', 'Nicolas Poussin', 'Gian Lorenzo Bernini', 'Diego Velázquez', 'Rembrandt', 'Judith Leyster', 'Jan Vermeer', 'Elisabetta Sirani', 'William Hogarth', 'Francois Boucher', 'Joshua Reynolds', 'Thomas Gainsborough', 'Jean-Honore Fragonard', 'George Romney', 'Angelica Kauffmann', 'Francisco Goya', 'Jacques-Louis David', 'Adélaïde Labille-Guiard', 'Élisabeth Vigée Le Brun', 'Henry Raeburn', 'John Opie', 'Marie Ellenrieder', 'George Catlin', 'Utagawa Hiroshige', 'Eugène Delacroix', 'Rosa Bonheur', 'Jean-Léon Gérôme', 'William-Adolphe Bouguereau', 'William Holman Hunt', 'Dante Gabriel Rossetti', 'John Everett Millais', 'Elizabeth Siddal', 'Frederic Leighton', 'Édouard Manet', 'Edgar Degas', 'Winslow Homer', 'Paul Cézanne', 'Claude Monet', 'Berthe Morisot', 'Pierre-Auguste Renoir', 'Pedro Américo', 'Mary Cassatt', 'Jules Bastien-Lepage', 'Paul Gauguin', 'Viktor Vasnetsov', 'John William Waterhouse', 'Edmund Leighton', 'Vincent van Gogh', 'Edouard Bisson', 'Evelyn de Morgan', 'Georges Seurat', 'Gustav Klimt', 'Gaston Bussière', 'Wassily Kandinsky', 'Henri Matisse', 'Maxfield Parrish', 'Piet Mondrian', 'Frederick Carl Frieseke', 'Paula Modersohn-Becker', 'Ivan Bilibin', 'Sir William Russell Flint', 'Pablo Picasso', 'Georges Braque', 'Edward Hopper', 'Amedeo Modigliani', 'Diego Rivera', 'Tarsila do Amaral', 'Georgia O\'Keeffe', 'Egon Schiele', 'René Magritte', 'Tamara de Lempicka', 'Alice Neel', 'Mark Rothko', 'Salvador Dalí', 'Frida Kahlo', 'Lee Krasner', 'Jackson Pollock', 'Roy Lichtenstein', 'Andy Warhol', 'Helen Frankenthaler', 'Yayoi Kusama', 'Pino Daeni', 'Keith Haring', 'Jean-Michel Basquiat', 'Takashi Murakami', 'Romero Britto', 'Banksy', 'Roberto Ferri', 'John Berkey', 'Neil Blevins', 'Doug Chiang', 'Peter Elson', 'Jesper Ejsing', 'Hugh Ferriss', 'Chris Foss', 'Brian Froud', 'Wendy Froud', 'Justin Gerard', 'H.R. Giger', 'Jean Giraud', 'Rube Goldberg', 'John Harris', 'Jim Henson', 'Ellen Jewett', 'H.P. Lovecraft', 'Robert McCall', 'Ralph McQuarrie', 'Ian McQue', 'Rodney Matthews', 'Syd Mead', 'Peter Mohrbacher', 'Victor Mosquera', 'W. Heath Robinson', 'Jakub Rozalski', 'Maurice Sendak', 'Simon Stålenhag', 'William Stout', 'Yoshitaka Amano (Final Fantasy)', 'Hiromu Arakawa (Fullmetal Alchemist)', 'Hirohiko Araki (JoJo\'s Bizarre Adventure)', 'Artgerm', 'Lois van Baarle', 'Jasmine Becket-Griffith', 'Don Bluth', 'Sam Bosma', 'Yanjun Cheng', 'Craola', 'Krenz Cushart', 'Tony DiTerlizzi', 'Atey Ghailan', 'Studio Ghibli', 'Kim Jung Gi', 'Tomer Hanuka', 'Ryohei Hase', 'Miho Hirano', 'Takehiko Inoue (Slam Dunk, Vagabond)', 'Junji Ito (Uzumaki)', 'Alexander Jansson', 'Ruan Jia', 'Shintaro Kago', 'Audrey Kawasaki', 'Brian Kesinger', 'Tatsuro Kiuchi', 'Jon Klassen', 'Satoshi Kon', 'Bryan Konietzko', 'Ilya Kuvshinov', 'Michal Lisowski', 'Cory Loftis', 'Leiji Matsumoto', 'Taiyō Matsumoto', 'Tomokazu Matsuyama', 'Kentaro Miura (Berserk)', 'Shigeru Mizuki', 'Jean-Baptiste Monge', 'Yusuke Murata', 'Go Nagai (Devilman, Mazinger Z)', 'Dustin Nguyen', 'Tsutomu Nihei (BLAME!)', 'Takeshi Obata (Death Note)', 'Beatrix Potter', 'Masaaki Sasamoto', 'Yoji Shinkawa (Metal Gear Solid)', 'Masamune Shirow (Ghost in the Shell)', 'Shigenori Soejima', 'Ken Sugimori (Pokémon)', 'Jillian Tamaki', 'Genndy Tartakovsky (Samurai Jack)', 'Katsuya Terada', 'Osamu Tezuka (Astro Boy)', 'Karl Thiart', 'Piper Thibodeau', 'Sergio Toppi', 'Ross Tran', 'Takato Yamamoto', 'Akihiko Yoshida (Final Fantasy Tactics, Nier: Automata)', 'Yuumei', 'Fenghua Zhong'] },
+            media: { title: "Mídia/Técnica", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-teal-400"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path></svg>`, items: ['acrylic painting (pintura acrílica)', 'airbrush (aerógrafo)', 'amigurumi', 'aquatint', 'assemblage (montagem)', 'batik', 'beadwork (missangas)', 'blackboard (lousa)', 'block print (impressão em bloco)', 'blown glass (vidro soprado)', 'chalk (giz)', 'chalkboard (quadro-negro)', 'charcoal (carvão)', 'clay (argila)', 'claymation', 'collage (colagem)', 'collotype', 'colored pencil (lápis de cor)', 'conté', 'crayon', 'crochet', 'cross stitch (ponto cruz)', 'cutout', 'digital (arte digital)', 'doodle (rabisco)', 'drybrush (pincel seco)', 'embossing (relevo)', 'embroidered (bordado)', 'encaustic', 'engraving (gravura)', 'etching (água-forte)', 'felt (feltro)', 'felted', 'flat design (design plano)', 'found (objeto encontrado)', 'fractal', 'fresco (afresco)', 'glitter (purpurina)', 'gouache (guache)', 'graffiti (grafite)', 'graphite pencil (lápis de grafite)', 'henna', 'illustration (ilustração)', 'inlaid (embutido)', 'intarsia', 'kirigami', 'knit (tricô)', 'lacquerware', 'lampwork', 'linocut (linoleogravura)', 'macramé', 'magazine (revista)', 'mandala', 'marker (marcador)', 'marquetry (marchetaria)', 'mezzotint', 'monotype (monotipia)', 'mosaic (mosaico)', 'mural', 'oil painting (pintura a óleo)', 'origami', 'palekh', 'papercutting', 'pastel', 'pen and ink (pena e nanquim)', 'paper mache (papel machê)', 'paperquilling', 'pixel', 'plaster (gesso)', 'Polaroid', 'postcard (cartão postal)', 'poster', 'potassium dichromate', 'procedural', 'Pysanky', 'quilt', 'scrapbook', 'screen printing (serigrafia)', 'Sharpie', 'sketch (esboço)', 'stained glass (vitral)', 'stencil (estêncil)', 'tattoo (tatuagem)', 'tempera', 'vector (vetor)', 'watercolor (aquarela)', 'whiteboard (quadro branco)', 'woodcut (xilogravura)', 'woven (tecelagem)'] },
+            games: { title: "Jogos", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-red-400"><path d="M2 12h3m14 0h3M12 2v3m0 14v3"></path><circle cx="12" cy="12" r="7"></circle></svg>`, items: ['Animal Crossing', 'Assassin\'s Creed', 'Bastion', 'Bioshock', 'Borderlands', 'Breath of the Wild', 'Cuphead', 'Dark Souls', 'Darksiders', 'Dead Space', 'Destiny', 'Elden Ring', 'Fallout', 'Final Fantasy', 'Final Fantasy Tactics', 'God of War', 'Grand Theft Auto', 'Hades', 'Halo', 'Harvest Moon', 'Hollow Knight', 'Horizon Zero Dawn', 'The Legend of Zelda', 'Mass Effect', 'Mega Man', 'Metal Gear Solid', 'Monkey Island', 'Nier: Automata', 'Octopath Traveler', 'Oddworld', 'Okami', 'Paper Mario', 'Pokémon', 'Psychonauts', 'Sonic the Hedgehog', 'Street Fighter', 'Super Mario', 'Super Metroid', 'Transistor', 'The Witcher', 'World of Warcraft'] },
+            formats: { title: "Formatos", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-green-400"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>`, items: ['advertisement (propaganda)', 'anatomical drawing (desenho anatômico)', 'ancient scroll (pergaminho antigo)', 'avatar', 'blueprint (planta baixa)', 'business card (cartão de visita)', 'catalog page (página de catálogo)', 'character sheet (ficha de personagem)', 'coloring book (livro de colorir)', 'comic book (história em quadrinhos)', 'election poster (pôster de eleição)', 'emoji', 'encyclopedia page (página de enciclopédia)', 'engineering diagram (diagrama de engenharia)', 'flyer', 'graphic novel (romance gráfico)', 'IKEA guide (guia IKEA)', 'illuminated manuscript (manuscrito iluminado)', 'instruction manual (manual de instruções)', 'logo (logotipo)', 'magazine (revista)', '"Magic the Gathering" card (carta de Magic)', 'manuscript (manuscrito)', 'map (mapa)', 'meme', 'movie poster (pôster de filme)', 'pamphlet', 'pop-up book (livro pop-up)', 'postage stamp (selo postal)', 'poster', 'propaganda poster (pôster de propaganda)', 'pulp novel', 'schematic (esquemático)', 'scientific drawing (desenho científico)', 'sticker (adesivo)', 'storyboard', 'travel poster (pôster de viagem)', 'wall decal (adesivo de parede)', 'woodblock print (xilogravura)'] },
+            aesthetics: { title: "Estética", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-yellow-400"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`, items: ['-punk', 'Angelpunk', 'Aquapunk', 'Arcanepunk', 'Astropunk', 'Atompunk', 'Biopunk', 'Bloodpunk', 'Bubblepunk', 'Contrapunk', 'Cryopunk', 'Crystalpunk', 'Cyberpunk', 'Deathpunk', 'Decopunk', 'Devilpunk', 'Dieselpunk', 'Doompunk', 'Dragonpunk', 'Ecopunk', 'Electropunk', 'Etherealpunk', 'Fairypunk', 'Fantasypunk', 'Flowerpunk', 'Futurepunk', 'Gamerpunk', 'Geopunk', 'Ghostpunk', 'Glasspunk', 'Gothicpunk', 'Gutterpunk', 'Matrixpunk', 'Modpunk', 'Ninjapunk', 'Pyropunk', 'Rainbowpunk', 'Ravepunk', 'Retropunk', 'Robopunk', 'Skatepunk', 'Skullpunk', 'Soldierpunk', 'Steampunk', 'Sugarpunk', 'Synthpunk', 'Trancepunk', 'Tribalpunk', 'Viruspunk', 'Vampirepunk', 'Voodoopunk', 'Witchpunk', 'Wolfpunk'] },
+            periods: { title: "História", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-orange-400"><path d="M5 22h14"></path><path d="M5 2h14"></path><path d="M12 2v2.34a6 6 0 0 1 0 11.32V22"></path><path d="M12 22v-2.34a6 6 0 0 0 0-11.32V2"></path></svg>`, items: ['1100s', '1200s', '1300s', '1400s', '1500s', '1600s', '1700s', '1800s', '1900s', '1910s', '1920s', '1930s', '1940s', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s', '2010s', '2020s', 'Abbasid Caliphate', 'ancient Egyptian (Antigo Egito)', 'ancient Greek (Grécia Antiga)', 'ancient Roman (Roma Antiga)', 'Aztec Empire (Império Asteca)', 'Babylonian Empire (Império Babilônico)', 'baroque (barroco)', 'Benin Kingdom', 'Bronze Age (Idade do Bronze)', 'Chenla', 'Civil War (Guerra Civil)', 'classical (clássico)', 'Cold War (Guerra Fria)', 'colonial (período colonial)', 'contemporary (contemporâneo)', 'Edwardian (período eduardiano)', 'Elizabethan (período elisabetano)', 'Georgian', 'Great Depression (Grande Depressão)'] }
+        };
+        const appData = { geral: { genero: ["Não especificado", "Masculino", "Feminino", "Não-binário", "Andrógino", "Gênero-fluido", "Outro"], racaEspecie: { "Não especificado": ["Não especificado"], "Humanas": ["Humano (Caucasiano)", "Humano (Asiático)", "Humano (Africano)", "Humano (Latino)", "Humano (Indígena)", "Humano (Miscigenado)"], "Fantasia Clássica": ["Elfo (Alto Elfo)", "Elfo (Elfo da Floresta)", "Elfo (Elfo Negro/Drow)", "Anão", "Orc", "Goblin", "Hobbit/Halfling", "Gnomo", "Tiefling", "Aasimar", "Draconato", "Homem-Fera (Lobisomem, Minotauro, etc.)"], "Sci-Fi": ["Cyborg", "Androide/Sintético", "Alienígena (Reptiliano)", "Alienígena (Insetoide)", "Alienígena (Humanoide)", "Alienígena (Energético)", "Mutante"], "Mitológicas": ["Anjo", "Demônio", "Vampiro", "Fada", "Sereia/Tritão", "Centauro", "Elemental"], "Outras": ["Morto-vivo (Zumbi, Esqueleto)", "Construto (Golem)", "Planta Antropomórfica"] }, arquetipo: ["Não especificado", "O Herói", "O Mentor", "O Guardião", "O Arauto", "O Metamorfo", "A Sombra", "O Aliado", "O Trapaceiro", "A Donzela em Perigo", "O Vilão", "O Anti-Herói"] }, aparencia: { tipoCorpo: ["Não especificado", "Esguio", "Atlético", "Musculoso(a)", "Corpulento(a)", "Magro(a)", " curvilíneo(a)", "Robusto(a)", "Delicado(a)", "Infantil", "Idoso(a)"], penteado: { "Não especificado": ["Não especificado"], "Comprimentos": ["Muito Curto (Raspado/Buzzcut)", "Curto", "Médio (altura dos ombros)", "Longo", "Muito Longo (cintura ou mais)"], "Estilos": ["Liso", "Ondulado", "Cacheado", "Crespo/Afro", "Tranças (Boxeadoras, Nagô, etc.)", "Dreadlocks", "Rabo de Cavalo", "Coque", "Moicano", "Undercut", "Assimétrico", "Bagunçado/Despojado", "Com Franja"] } }, papelVestimenta: { vestimentaPrincipal: ["Não especificado", "Roupas Casuais Modernas", "Traje Formal", "Uniforme", "Roupas de Aventura", "Vestes Mágicas", "Traje Futurista", "Roupas Tribais"], armadura: { "Não especificado": ["Não especificado", "Sem Armadura"], "Leve": ["Couro Batido", "Corselete de Couro", "Gambeson"], "Média": ["Cota de Malha", "Brigandina", "Peitoral de Aço"], "Pesada": ["Armadura de Placas Completa"], "Sci-Fi": ["Exoesqueleto Leve", "Power Armor"] } }, equipamentos: { armas: { "Não especificado": ["Não especificado", "Desarmado(a)"], "Lâminas": ["Espada Longa", "Adaga", "Katana"], "Impacto": ["Maça", "Martelo de Guerra"], "Haste": ["Lança", "Alabarda"], "Distância": ["Arco Longo", "Besta", "Pistola Laser", "Rifle de Plasma"] }, acessoriosItens: ["Mochila", "Bolsa de Cinto", "Colar/Amuleto", "Anel", "Brincos", "Capa/Manto", "Chapéu/Elmo", "Óculos/Visor", "Máscara", "Luvas"] }, estiloVisual: { inspiracaoArtista: ["Não especificado", "Greg Rutkowski", "Alphonse Mucha", "H.R. Giger", "Frank Frazetta", "Yoshitaka Amano"], movimentoArtistico: ["Não especificado", "Renascimento", "Barroco", "Romantismo", "Impressionismo", "Surrealismo", "Art Nouveau", "Art Deco"], enquadramentoCamera: ["Não especificado","Close-up Extremo","Close-up","Plano Médio","Plano Americano","Plano Inteiro","Plano Geral","Contra-plongée (Low Angle Shot)","Plongée (High Angle Shot)","Olho de Minhoca (Worm's Eye View)","Olho de Pássaro (Bird's Eye View)","Holandês (Dutch Angle)"], estiloLente: ["Não especificado","Lente Grande Angular (Wide Angle)","Lente Teleobjetiva (Telephoto)","Lente Olho de Peixe (Fisheye)","Lente Macro","Foco Suave (Soft Focus)","Bokeh Acentuado","Tilt-Shift"], efeitosVisuais: ["Não especificado","HDR (High Dynamic Range)","Resolução 4K/8K","Foco Nítido (Sharp Focus)","Desfoque de Movimento (Motion Blur)","Grão Cinematográfico (Film Grain)","Vazamento de Luz (Light Leak)","Lens Flare","Vinheta","Aberração Cromática","Bloom/Brilho Intenso","Partículas (poeira, faíscas, magia)"], iluminacaoAtmosfera: ["Não especificado","Luz do Dia (Sol Forte)","Luz Difusa (Nublado)","Crepúsculo/Hora Dourada","Noite (Luar)","Iluminação de Estúdio","Luz Volumétrica/Raios de Luz","Contraluz (Rim Lighting)","Iluminação Dramática (Chiaroscuro)","Névoa/Neblina","Chuva/Tempestade","Subaquático","Espaço Sideral"] }, narrativa: { temaGeral: ["Não especificado", "Aventura", "Batalha", "Exploração", "Mistério", "Sobrevivência"], cenarioDetalhado: { "Não especificado": ["Não especificado"], "Natureza": ["Floresta Densa", "Montanhas Nevadas", "Deserto Árido"], "Urbano": ["Castelo Medieval", "Cidade Futurista", "Ruínas Antigas"] }, acaoPose: { "Não especificado": ["Não especificado", "Pose Neutra"], "Estáticas": ["Sentado(a)", "Meditando", "Observando"], "Dinâmicas": ["Correndo", "Saltando", "Lutando"] }, expressaoFacial: ["Não especificado", "Neutra", "Feliz", "Triste", "Irritado(a)", "Surpreso(a)"] } };
+        
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast-notification');
+            if(!toast) return;
+            toast.textContent = message;
+            toast.className = 'fixed bottom-5 right-5 text-white py-3 px-6 rounded-lg shadow-xl text-sm z-50 transition-all duration-300 opacity-0 transform translate-y-10';
+            toast.classList.remove('opacity-0', 'translate-y-10');
+            switch (type) {
+                case 'success': toast.classList.add('bg-green-600'); break;
+                case 'error': toast.classList.add('bg-red-600'); break;
+                case 'warning': toast.classList.add('bg-amber-500'); break;
+                default: toast.classList.add('bg-violet-600'); break;
+            }
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-10');
+            }, 3000);
+        }
+
+        function copyUsingExecCommand(textareaElement) {
+            if (!textareaElement || !textareaElement.value) {
+                showToast('Nada para copiar.', 'warning');
+                return;
+            }
+            textareaElement.select();
+            textareaElement.setSelectionRange(0, 99999);
+            try {
+                if(document.execCommand('copy')) showToast('Prompt copiado!', 'success');
+                else showToast('Falha ao copiar o prompt.', 'error');
+            } catch (err) {
+                showToast('Erro ao copiar o prompt.', 'error');
+            }
+            window.getSelection().removeAllRanges();
+        }
+        
+        function createAccordionButton(key, title, icon, type) {
+            return `<div class="category-wrapper">
+                        <button data-key="${key}" data-type="${type}" class="category-button w-full flex items-center justify-start p-3 bg-slate-800 rounded-lg shadow-md hover:bg-slate-700/50 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all duration-200 h-full">
+                            ${icon} <span class="ml-3 text-sm font-semibold text-slate-300">${title}</span>
+                        </button>
+                        <div id="accordion-${key}" class="accordion-content bg-slate-800/50 rounded-b-lg px-4 -mt-1">
+                        </div>
+                    </div>`;
+        }
+
+        function createStyleAccordionContent(key, targetElement) {
+            let itemsHTML = '';
+            stylePromptData[key].items.sort().forEach(item => {
+                const isSelected = styleSelectedTerms.has(item) ? 'selected-item' : '';
+                itemsHTML += `<a href="#" class="style-term-item block px-3 py-1.5 text-sm text-slate-200 hover:bg-violet-500/50 rounded-md ${isSelected}" data-term="${item}">${item}</a>`;
+            });
+            targetElement.innerHTML = `<div class="max-h-64 overflow-y-auto">${itemsHTML}</div>`;
+        }
+
+        function createFormAccordionContent(sectionId, targetElement) {
+            const sectionsHTML = {
+                identidade: `<div class="space-y-4"><div><label for="nomePersonagem" class="block text-xs font-medium text-slate-400 mb-1">Nome</label><input type="text" id="nomePersonagem" name="nomePersonagem"></div><div><label for="genero" class="block text-xs font-medium text-slate-400 mb-1">Gênero</label><select id="genero" name="genero"></select></div><div><label for="racaEspecie" class="block text-xs font-medium text-slate-400 mb-1">Raça/Espécie</label><select id="racaEspecie" name="racaEspecie"></select></div><div><label for="arquetipo" class="block text-xs font-medium text-slate-400 mb-1">Arquétipo</label><select id="arquetipo" name="arquetipo"></select></div><div><label for="caracteristicasFisicas" class="block text-xs font-medium text-slate-400 mb-1">Características Essenciais</label><textarea id="caracteristicasFisicas" name="caracteristicasFisicas" rows="3"></textarea></div></div>`,
+                aparencia: `<div class="grid grid-cols-1 gap-4"><div><label for="tipoCorpo" class="block text-xs font-medium text-slate-400 mb-1">Tipo de Corpo</label><select id="tipoCorpo" name="tipoCorpo"></select></div><div><label for="corPele" class="block text-xs font-medium text-slate-400 mb-1">Cor da Pele</label><input type="text" id="corPele" name="corPele"></div><div><label for="corCabelo" class="block text-xs font-medium text-slate-400 mb-1">Cor do Cabelo</label><input type="text" id="corCabelo" name="corCabelo"></div><div><label for="penteado" class="block text-xs font-medium text-slate-400 mb-1">Penteado</label><select id="penteado" name="penteado"></select></div><div><label for="corOlhos" class="block text-xs font-medium text-slate-400 mb-1">Cor dos Olhos</label><input type="text" id="corOlhos" name="corOlhos"></div></div>`,
+                vestimenta: `<div class="space-y-4"><div><label for="vestimentaPrincipal" class="block text-xs font-medium text-slate-400 mb-1">Vestimenta Principal</label><select id="vestimentaPrincipal" name="vestimentaPrincipal"></select></div><div><label for="armadura" class="block text-xs font-medium text-slate-400 mb-1">Armadura</label><select id="armadura" name="armadura"></select></div></div>`,
+                equipamentos: `<div class="space-y-4"><div><label for="armas" class="block text-xs font-medium text-slate-400 mb-1">Armas</label><select id="armas" name="armas"></select></div><div><label class="block text-sm font-medium text-slate-300 mb-2">Acessórios/Itens</label><div id="acessoriosItens" class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-slate-700/50 rounded-md"></div></div></div>`,
+                estilo: `<div class="space-y-4"><div><label for="inspiracaoArtista" class="block text-xs font-medium text-slate-400 mb-1">Inspiração Artística</label><select id="inspiracaoArtista" name="inspiracaoArtista"></select></div><div><label for="movimentoArtistico" class="block text-xs font-medium text-slate-400 mb-1">Movimento Artístico</label><select id="movimentoArtistico" name="movimentoArtistico"></select></div><div><label for="enquadramentoCamera" class="block text-xs font-medium text-slate-400 mb-1">Enquadramento</label><select id="enquadramentoCamera" name="enquadramentoCamera"></select></div><div><label for="estiloLente" class="block text-xs font-medium text-slate-400 mb-1">Lente</label><select id="estiloLente" name="estiloLente"></select></div><div><label for="efeitosVisuais" class="block text-xs font-medium text-slate-400 mb-1">Efeitos</label><select id="efeitosVisuais" name="efeitosVisuais"></select></div><div><label for="iluminacaoAtmosfera" class="block text-xs font-medium text-slate-400 mb-1">Iluminação</label><select id="iluminacaoAtmosfera" name="iluminacaoAtmosfera"></select></div></div>`,
+                narrativa: `<div class="space-y-4"><div><label for="temaGeral" class="block text-xs font-medium text-slate-400 mb-1">Tema Geral</label><select id="temaGeral" name="temaGeral"></select></div><div><label for="cenarioDetalhado" class="block text-xs font-medium text-slate-400 mb-1">Cenário</label><select id="cenarioDetalhado" name="cenarioDetalhado"></select></div><div><label for="acaoPose" class="block text-xs font-medium text-slate-400 mb-1">Ação/Pose</label><select id="acaoPose" name="acaoPose"></select></div><div><label for="expressaoFacial" class="block text-xs font-medium text-slate-400 mb-1">Expressão Facial</label><select id="expressaoFacial" name="expressaoFacial"></select></div></div>`,
+                default: `<p class="text-slate-400">Conteúdo para a seção '${sectionId}' em desenvolvimento.</p>`
+            };
+            targetElement.innerHTML = sectionsHTML[sectionId] || sectionsHTML.default;
+        }
+
+        function populateSelect(selectId, options, hasOptgroups = false) {
+            const selectElement = document.getElementById(selectId);
+            if (!selectElement) return;
+            selectElement.innerHTML = ''; 
+            if (hasOptgroups) {
+                for (const groupLabel in options) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = groupLabel;
+                    options[groupLabel].forEach(optionValue => {
+                        const option = document.createElement('option');
+                        option.value = `${groupLabel}|${optionValue}`;
+                        option.textContent = optionValue;
+                        optgroup.appendChild(option);
+                    });
+                    selectElement.appendChild(optgroup);
+                }
+            } else {
+                options.forEach(optionValue => {
+                    const option = document.createElement('option');
+                    option.value = optionValue;
+                    option.textContent = optionValue;
+                    selectElement.appendChild(option);
+                });
+            }
+        }
+        
+        function populateCheckboxes(containerId, options) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            options.forEach(optionValue => {
+                const label = document.createElement('label');
+                label.className = 'flex items-center text-sm text-slate-200 cursor-pointer';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'custom-checkbox';
+                checkbox.value = optionValue;
+                checkbox.name = containerId;
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(` ${optionValue}`));
+                container.appendChild(label);
+            });
+        }
+
+        function populateAllCharacterFields() {
+             populateSelect('genero', appData.geral.genero);
+             populateSelect('racaEspecie', appData.geral.racaEspecie, true);
+             populateSelect('arquetipo', appData.geral.arquetipo);
+             populateSelect('tipoCorpo', appData.aparencia.tipoCorpo);
+             populateSelect('penteado', appData.aparencia.penteado, true);
+             populateSelect('vestimentaPrincipal', appData.papelVestimenta.vestimentaPrincipal);
+             populateSelect('armadura', appData.papelVestimenta.armadura, true);
+             populateSelect('armas', appData.equipamentos.armas, true);
+             populateSelect('inspiracaoArtista', appData.estiloVisual.inspiracaoArtista);
+             populateSelect('movimentoArtistico', appData.estiloVisual.movimentoArtistico);
+             populateSelect('enquadramentoCamera', appData.estiloVisual.enquadramentoCamera);
+             populateSelect('estiloLente', appData.estiloVisual.estiloLente);
+             populateSelect('efeitosVisuais', appData.estiloVisual.efeitosVisuais);
+             populateSelect('iluminacaoAtmosfera', appData.estiloVisual.iluminacaoAtmosfera);
+             populateSelect('temaGeral', appData.narrativa.temaGeral);
+             populateSelect('cenarioDetalhado', appData.narrativa.cenarioDetalhado, true);
+             populateSelect('acaoPose', appData.narrativa.acaoPose, true);
+             populateSelect('expressaoFacial', appData.narrativa.expressaoFacial);
+             populateCheckboxes('acessoriosItens', appData.equipamentos.acessoriosItens);
+        }
+        
+        function generatePrompt(type) {
+            let compactParts = [];
+            let detailedParts = [];
+            if (styleSelectedTerms.size > 0) {
+                const styleString = Array.from(styleSelectedTerms).join(', ');
+                compactParts.push(styleString);
+                detailedParts.push(`Estilos Visuais: ${styleString}`);
+            }
+            const formData = new FormData(document.getElementById('characterForm'));
+            
+            for (let [key, value] of formData.entries()) {
+                const element = document.getElementById(key);
+                if (element && element.type !== 'checkbox' && value && value.trim() !== "" && value !== "Não especificado" && (element.tagName !== 'SELECT' || element.options[element.selectedIndex]?.textContent !== 'Não especificado')) {
+                     const compactValue = value.includes('|') ? value.split('|')[1] : value;
+                     compactParts.push(compactValue.trim());
+                     const label = document.querySelector(`label[for="${key}"]`)?.textContent || key;
+                     detailedParts.push(`${label}: ${compactValue.trim()}`);
+                }
+            }
+            
+            const acessorios = Array.from(document.querySelectorAll('input[name="acessoriosItens"]:checked')).map(cb => cb.value);
+            if(acessorios.length > 0) {
+                const acessoriosStr = acessorios.join(', ');
+                compactParts.push(acessoriosStr);
+                detailedParts.push(`Acessórios: ${acessoriosStr}`);
+            }
+            
+            const finalPrompt = type === 'detailed' ? detailedParts.join(". ") : compactParts.join(", ");
+            document.getElementById('generatedPrompt').value = finalPrompt;
+            if (finalPrompt) showToast(`Prompt ${type} gerado com sucesso!`, 'success');
+            else showToast('Nenhuma informação selecionada para gerar o prompt.', 'warning');
+        }
+
+        function toggleAccordion(key) {
+            const accordion = document.getElementById(`accordion-${key}`);
+            if (!accordion) return;
+            const isVisible = accordion.classList.contains('open');
+            if (openAccordion && openAccordion !== accordion) {
+                openAccordion.classList.remove('open');
+            }
+            if (isVisible) {
+                accordion.classList.remove('open');
+                openAccordion = null;
+            } else {
+                accordion.classList.add('open');
+                openAccordion = accordion;
+            }
+        }
+        
+        function setupCategoryEventListeners() {
+            document.getElementById('categories-container').addEventListener('click', (e) => {
+                const button = e.target.closest('.category-button');
+                if (button) {
+                    e.preventDefault();
+                    toggleAccordion(button.dataset.key);
+                }
+                if (e.target.matches('.style-term-item')) {
+                    e.preventDefault();
+                    const term = e.target.dataset.term;
+                    e.target.classList.toggle('selected-item');
+                    if (styleSelectedTerms.has(term)) styleSelectedTerms.delete(term);
+                    else styleSelectedTerms.add(term);
+                }
+            });
+        }
+        
+        function randomizeAllFields() {
+            const form = document.getElementById('characterForm');
+            const selects = form.querySelectorAll('select');
+            selects.forEach(select => {
+                const startIndex = select.options.length > 1 && select.options[0].value === "Não especificado" ? 1 : 0;
+                if (select.options.length > startIndex) {
+                    const randomIndex = Math.floor(Math.random() * (select.options.length - startIndex)) + startIndex;
+                    select.selectedIndex = randomIndex;
+                }
+            });
+            
+            styleSelectedTerms.clear();
+            document.querySelectorAll('.style-term-item.selected-item').forEach(el => el.classList.remove('selected-item'));
+
+            for (const key in stylePromptData) {
+                const items = stylePromptData[key].items;
+                const randomIndex = Math.floor(Math.random() * items.length);
+                const randomTerm = items[randomIndex];
+                styleSelectedTerms.add(randomTerm);
+                const termElement = document.querySelector(`.style-term-item[data-term="${randomTerm}"]`);
+                if(termElement) termElement.classList.add('selected-item');
+            }
+
+            showToast('Características embaralhadas!', 'success');
+        }
+
+        function setupGlobalEventListeners() {
+            document.getElementById('clearAllBtn').addEventListener('click', () => {
+                document.getElementById('characterForm').reset();
+                styleSelectedTerms.clear();
+                document.querySelectorAll('.selected-item').forEach(el => el.classList.remove('selected-item'));
+                document.getElementById('generatedPrompt').value = '';
+                showToast('Todos os campos e seleções foram limpos!', 'info');
+            });
+            document.getElementById('generateCompactPromptBtn').addEventListener('click', () => generatePrompt('compact'));
+            document.getElementById('generateDetailedPromptBtn').addEventListener('click', () => generatePrompt('detailed'));
+            document.getElementById('copyPromptBtn').addEventListener('click', () => copyUsingExecCommand(document.getElementById('generatedPrompt')));
+            document.getElementById('randomizeAllBtn').addEventListener('click', randomizeAllFields);
+            
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const sideMenu = document.getElementById('sidebar');
+            const closeMenuBtn = document.getElementById('close-sidebar-btn');
+            hamburgerBtn.addEventListener('click', () => sideMenu.classList.remove('-translate-x-full'));
+            closeMenuBtn.addEventListener('click', () => sideMenu.classList.add('-translate-x-full'));
+        }
+        
+        function renderAllCategories() {
+            const container = document.getElementById('categories-container');
+            container.innerHTML = '';
+            
+            const allCategories = [
+                { id: 'identidade', title: 'Identidade', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-violet-400"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>`, type: 'form' },
+                { id: 'aparencia', title: 'Aparência', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-violet-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.39m3.421 3.415a3 3 0 0 0 5.78-1.128 2.25 2.25 0 0 1 2.4-2.245 4.5 4.5 0 0 0-8.4 2.245c0 .399.078.78.22 1.128Zm0 0l3.388 1.62m-5.043-.025a15.994 15.994 0 0 1-1.622-3.39m3.421 3.415Z" /></svg>`, type: 'form' },
+                { id: 'vestimenta', title: 'Vestimenta', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-violet-400"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.122 2.122l7.81-7.81" /></svg>`, type: 'form' },
+                { id: 'equipamentos', title: 'Equipamentos', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-violet-400"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.664 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.631 5.631L21.25 9.5l-5.208-5.209L9.5 11.042l5.63 5.63Z" /></svg>`, type: 'form' },
+                { id: 'narrativa', title: 'Narrativa', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-violet-400"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`, type: 'form' },
+                { id: 'artists', title: 'Artistas', icon: stylePromptData.artists.icon, type: 'style' },
+                { id: 'estilo', title: 'Estilo Visual', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-violet-400"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672Zm-7.518-.267A8.25 8.25 0 1 1 20.25 10.5M8.288 14.212A5.25 5.25 0 1 1 17.25 10.5" /></svg>`, type: 'form' },
+                { id: 'media', title: 'Mídia/Técnica', icon: stylePromptData.media.icon, type: 'style' },
+                { id: 'aesthetics', title: 'Estética', icon: stylePromptData.aesthetics.icon, type: 'style' },
+                { id: 'games', title: 'Jogos', icon: stylePromptData.games.icon, type: 'style' },
+                { id: 'formats', title: 'Formatos', icon: stylePromptData.formats.icon, type: 'style' },
+                { id: 'periods', title: 'História', icon: stylePromptData.periods.icon, type: 'style' }
+            ];
+
+            allCategories.forEach(cat => {
+                container.innerHTML += createAccordionButton(cat.id, cat.title, cat.icon, cat.type);
+            });
+
+            // Preenche o conteúdo agora que os contêineres existem
+            allCategories.forEach(cat => {
+                const accordionContent = document.getElementById(`accordion-${cat.id}`);
+                if (cat.type === 'style') {
+                    createStyleAccordionContent(cat.id, accordionContent);
+                } else {
+                    createFormAccordionContent(cat.id, accordionContent);
+                }
+            });
+
+            populateAllCharacterFields();
+        }
+
+        function initializeUI() {
+            renderAllCategories();
+            setupCategoryEventListeners();
+            setupGlobalEventListeners();
+        }
+        
+        initializeUI();
+    });
+    </script>
+</body>
+</html>
