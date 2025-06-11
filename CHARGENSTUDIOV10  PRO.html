@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CharGen Studio PRO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #f3f4f6; }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
+        
+        .accordion-content, .main-section-content { 
+            transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out, opacity 0.3s ease-in-out;
+            overflow: hidden; 
+            max-height: 0; 
+            opacity: 0; 
+            padding-top: 0; padding-bottom: 0; 
+        }
+        .accordion-content.open, .main-section-content.open { 
+            max-height: 2000px; /* Aumentado para garantir que todo conteúdo caiba */
+            opacity: 1; 
+            padding-top: 1rem; 
+            padding-bottom: 1rem;
+        }
+        
+        .selected-item { background-color: #4f46e5 !important; color: #fff !important; font-weight: 600; }
+
+        select, input, textarea {
+            background-color: #374151; border: 1px solid #4b5563; color: #f3f4f6; border-radius: 0.5rem; width: 100%; padding: 0.5rem;
+        }
+        select:focus, input:focus, textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 2px #4f46e5; outline: none; }
+
+        .loader {
+            border: 4px solid #f3f4f6; border-top: 4px solid #6366f1; border-radius: 50%;
+            width: 24px; height: 24px; animation: spin 1s linear infinite;
+        }
+        .small-loader { border-width: 3px; width: 18px; height: 18px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .ai-suggestion-btn {
+            padding: 0.3rem; margin-left: 0.5rem; background-color: #7c3aed; color: white;
+            border-radius: 0.375rem; font-size: 0.75rem; line-height: 1; display: inline-flex; align-items: center;
+        }
+        .ai-suggestion-btn:hover { background-color: #6d28d9; }
+        
+        .section-arrow { transition: transform 0.3s ease; }
+        .active .section-arrow { transform: rotate(180deg); }
+
+        #sidebar { transition: transform 0.3s ease-in-out; }
+        #rascunhoSidebar { transition: transform 0.3s ease-in-out; z-index: 60; }
+        #openRascunhoBtn { z-index: 55; transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; }
+        #openRascunhoBtn.hidden { opacity: 0; visibility: hidden; }
+    </style>
+</head>
+<body class="p-4 md:p-6">
+
+    <!-- Botão e Sidebar de Rascunho -->
+    <button id="openRascunhoBtn" class="fixed top-1/2 right-0 transform -translate-y-1/2 bg-violet-600 hover:bg-violet-700 text-white p-3 rounded-l-lg shadow-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+    </button>
+    <div id="rascunhoSidebar" class="fixed top-0 right-0 h-full w-full sm:w-80 md:w-96 bg-slate-800 shadow-xl transform translate-x-full p-4 flex flex-col border-l border-slate-700">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-orbitron text-lg text-violet-300">Rascunho de Ideias</h3>
+            <button id="closeRascunhoBtn" class="text-slate-300 hover:text-white p-1 rounded-md hover:bg-slate-700">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <textarea id="rascunhoTextarea" class="w-full flex-grow p-2 bg-slate-900 border-slate-700 rounded-md text-slate-200 text-sm mb-4 resize-none" placeholder="Digite ou gere ideias aqui..."></textarea>
+        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+            <button id="addRascunhoToPromptBtn" class="flex-1 bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2 px-3 rounded-lg text-sm">Adicionar ao Prompt</button>
+            <button id="clearRascunhoBtn" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2 px-3 rounded-lg text-sm">Limpar Rascunho</button>
+        </div>
+    </div>
+
+    <!-- Header Principal -->
+    <header class="flex justify-between items-center mb-6 pb-4 border-b border-slate-700">
+        <h1 class="font-orbitron text-2xl md:text-3xl font-bold text-violet-400">CharGen Studio <span class="text-violet-600">PRO</span></h1>
+        <button id="hamburger-btn" class="p-2 rounded-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500 md:hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
+    </header>
+
+    <div class="md:grid md:grid-cols-12 md:gap-8">
+        
+        <!-- Sidebar de Categorias -->
+        <aside id="sidebar" class="md:col-span-4 lg:col-span-3 fixed md:relative top-0 left-0 h-full w-80 md:w-auto bg-slate-900 md:bg-transparent shadow-xl md:shadow-none transform -translate-x-full md:translate-x-0 z-40 p-4 md:p-0">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-700 md:hidden">
+                 <h2 class="font-orbitron text-xl text-violet-300">Categorias</h2>
+                 <button id="close-sidebar-btn" class="p-2 rounded-md hover:bg-slate-700">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                 </button>
+            </div>
+            <div class="h-full overflow-y-auto pr-2">
+                 <form id="characterForm">
+                     <div id="categories-container" class="space-y-2">
+                         <!-- Categorias serão inseridas aqui via JS -->
+                     </div>
+                 </form>
+            </div>
+        </aside>
+
+        <!-- Conteúdo Principal -->
+        <main class="md:col-span-8 lg:col-span-9 space-y-4">
+            
+            <!-- Seção de Análise por IA (Acordeão) -->
+            <div class="bg-slate-800 rounded-lg shadow-xl">
+                <button class="main-section-header w-full p-4 flex justify-between items-center text-left hover:bg-slate-700/50 transition-colors rounded-lg">
+                    <h2 class="font-orbitron text-xl text-violet-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-3 text-violet-400"><path stroke-linecap="round" stroke-linejoin="round" d="M10.05 4.575a1.575 1.575 0 1 0-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 0 1 3.15 0v1.5m-3.15 0S8.505 4.5 8.25 4.5m5.625 4.5H18a2.25 2.25 0 0 1 2.25 2.25v3.75a2.25 2.25 0 0 1-2.25 2.25H13.875m0 0A2.25 2.25 0 0 1 11.625 15h-1.5a2.25 2.25 0 0 1-2.25-2.25V8.625c0-.621.504-1.125 1.125-1.125h1.5a2.25 2.25 0 0 1 2.25 2.25Z" /></svg>
+                        Análise com IA
+                    </h2>
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 section-arrow text-slate-400"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                </button>
+                <div class="main-section-content px-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="imageUpload" class="block text-sm font-medium text-slate-300 mb-1">Upload de Imagem (PNG, JPG, WEBP - max 4MB)</label>
+                            <input type="file" id="imageUpload" accept="image/png, image/jpeg, image/webp" class="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-violet-600 file:text-white hover:file:bg-violet-700 cursor-pointer">
+                            <div id="imagePreviewContainer" class="mt-4 w-full h-48 bg-slate-700 rounded-lg flex items-center justify-center overflow-hidden mx-auto">
+                                <img id="imagePreview" src="#" alt="Pré-visualização da Imagem" class="hidden max-h-full max-w-full object-contain">
+                                <span id="imagePreviewPlaceholder" class="text-slate-500">Pré-visualização</span>
+                            </div>
+                            <button id="analyzeImageBtn" class="mt-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors flex items-center justify-center text-sm">Analisar Imagem <div id="analyzeLoader" class="loader small-loader ml-3 hidden"></div></button>
+                        </div>
+                        <div>
+                            <label for="analyzeTxtFileInput" class="block text-sm font-medium text-slate-300 mb-1">Upload de Texto (.txt)</label>
+                            <input type="file" id="analyzeTxtFileInput" class="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-violet-600 file:text-white hover:file:bg-violet-700 cursor-pointer">
+                             <div class="mt-4 w-full h-48 bg-slate-700 rounded-lg flex items-center justify-center overflow-hidden mx-auto p-2">
+                                 <p class="text-slate-500 text-center text-sm">A IA pode analisar uma descrição textual e preencher os campos do formulário.</p>
+                             </div>
+                            <button id="analyzeTxtAndFillBtn" class="mt-2 w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors flex items-center justify-center text-sm">Analisar Texto <div id="analyzeTxtLoader" class="loader small-loader ml-3 hidden"></div></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção do Prompt Final (Acordeão) -->
+            <div class="bg-slate-800 rounded-lg shadow-xl">
+                <button class="main-section-header w-full p-4 flex justify-between items-center text-left hover:bg-slate-700/50 transition-colors rounded-lg">
+                    <h2 class="font-orbitron text-xl text-violet-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-3 text-green-400"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125.M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                        Seu Prompt Final
+                    </h2>
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 section-arrow text-slate-400"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                </button>
+                <div class="main-section-content px-4">
+                    <textarea id="generatedPrompt" rows="8" class="w-full p-3 bg-slate-900 border-slate-700 rounded-lg text-slate-200 text-sm" placeholder="Selecione as opções na barra lateral, use a IA para gerar detalhes e clique em 'Gerar Prompt'..."></textarea>
+                    <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                        <button id="generateCompactPromptBtn" class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-3 rounded-lg shadow-xl transition-transform hover:scale-105 text-sm">Gerar Compacto</button>
+                        <button id="generateDetailedPromptBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg shadow-xl transition-transform hover:scale-105 text-sm">Gerar Detalhado</button>
+                        <button id="copyPromptBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Copiar</button>
+                        <button id="randomizeAllBtn" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Aleatorizar</button>
+                        <button id="clearAllBtn" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Limpar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Geração de Imagem (Acordeão) -->
+            <div class="bg-slate-800 rounded-lg shadow-xl">
+                 <button class="main-section-header w-full p-4 flex justify-between items-center text-left hover:bg-slate-700/50 transition-colors rounded-lg">
+                    <h2 class="font-orbitron text-xl text-violet-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-3 text-teal-400"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
+                        Pré-visualização da Imagem Gerada por IA
+                    </h2>
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 section-arrow text-slate-400"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                </button>
+                <div class="main-section-content px-4">
+                    <div class="flex flex-col items-center">
+                        <button id="generateImagePreviewBtn" class="w-full md:w-2/3 bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-lg shadow-xl transition-transform hover:scale-105 mb-4 flex items-center justify-center">
+                            Gerar Imagem do Personagem com IA
+                            <div id="imageGenLoader" class="loader ml-3 hidden"></div>
+                        </button>
+                        <div id="generatedImageContainer" class="w-full md:w-96 h-96 bg-slate-700 rounded-lg flex items-center justify-center overflow-hidden">
+                            <img id="generatedImagePreview" src="#" alt="Imagem Gerada pela IA" class="hidden max-h-full max-w-full object-contain">
+                            <span id="generatedImagePlaceholder" class="text-slate-500">A imagem gerada aparecerá aqui...</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-2 text-center">Utiliza o "Prompt Final" para gerar a imagem.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seção de Gerenciamento (Sempre visível) -->
+            <div class="p-6 bg-slate-800 rounded-lg shadow-xl">
+                 <h3 class="font-orbitron text-xl text-violet-300 mb-4 text-center">Gerenciamento</h3>
+                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex flex-col space-y-2">
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Salvar/Carregar</label>
+                        <button id="saveCharacterTxtBtn" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Salvar (.txt)</button>
+                        <button id="loadCharacterBtn" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Carregar (.txt)</button>
+                        <input type="file" id="loadCharacterFileInput" class="hidden" accept=".txt">
+                    </div>
+                     <div>
+                        <label for="presets" class="block text-sm font-medium text-slate-300 mb-1">Presets</label>
+                        <select id="presets" name="presets" class="w-full p-2 mb-2"></select>
+                        <button id="applyPresetBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md text-sm">Aplicar Preset</button>
+                    </div>
+                 </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Notificação Toast -->
+    <div id="toast-notification" class="fixed bottom-5 right-5 bg-violet-600 text-white py-3 px-6 rounded-lg shadow-xl text-sm z-50 transition-all duration-300 opacity-0 transform translate-y-10"></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // State variables
+        let openAccordion = null;
+        let openMainSection = null;
+        let styleSelectedTerms = new Set();
+        let toastTimeout;
+        let base64ImageData = null;
+
+        // Centralized data object for all form options
+        const appData = {
+            // Data from CHARGENSTUDIOV2 (more detailed)
+            identidade: {
+                genero: ["Não especificado", "Masculino", "Feminino", "Não-binário", "Andrógino", "Gênero-fluido", "Outro"],
+                racaEspecie: {
+                    "Não especificado": ["Não especificado"],
+                    "Humanas": ["Humano (Caucasiano)", "Humano (Asiático)", "Humano (Africano)", "Humano (Latino)", "Humano (Indígena)", "Humano (Miscigenado)"],
+                    "Fantasia Clássica": ["Elfo (Alto Elfo)", "Elfo (Elfo da Floresta)", "Elfo (Elfo Negro/Drow)", "Anão", "Orc", "Goblin", "Hobbit/Halfling", "Gnomo", "Tiefling", "Aasimar", "Draconato", "Homem-Fera (Lobisomem, Minotauro, etc.)"],
+                    "Sci-Fi": ["Ciborgue", "Androide/Sintético", "Alienígena (Reptiliano)", "Alienígena (Insetoide)", "Alienígena (Humanoide)", "Alienígena (Energético)", "Mutante"],
+                    "Mitológicas": ["Anjo", "Demônio", "Vampiro", "Fada", "Sereia/Tritão", "Centauro", "Elemental"],
+                    "Outras": ["Morto-vivo (Zumbi, Esqueleto)", "Construto (Golem)", "Planta Antropomórfica"]
+                },
+                arquetipo: ["Não especificado", "O Herói", "O Mentor", "O Guardião", "O Arauto", "O Metamorfo", "A Sombra", "O Aliado", "O Trapaceiro", "A Donzela em Perigo", "O Vilão", "O Anti-Herói"],
+            },
+            aparencia: {
+                tipoCorpo: ["Não especificado", "Esguio", "Atlético", "Musculoso(a)", "Corpulento(a)", "Magro(a)", "Curvilíneo(a)", "Robusto(a)", "Delicado(a)", "Infantil", "Idoso(a)"],
+                texturaPele: ["Não especificado", "Lisa", "Escamosa", "Metálica", "Rochosa", "Peluda", "Translúcida", "Brilhante", "Rachada", "Casca de Árvore", "Queimada", "Cicatrizada"],
+                penteado: {
+                    "Não especificado": ["Não especificado"],
+                    "Comprimentos": ["Careca", "Muito Curto (Raspado)", "Curto", "Médio (ombros)", "Longo", "Muito Longo (cintura ou mais)"],
+                    "Estilos": ["Liso", "Ondulado", "Cacheado", "Crespo/Afro", "Tranças", "Dreadlocks", "Rabo de Cavalo", "Coque", "Moicano", "Undercut", "Assimétrico", "Bagunçado", "Com Franja"]
+                },
+            },
+            trajes: {
+                vestimentaPrincipal: ["Não especificado", "Roupas Casuais Modernas", "Traje Formal", "Uniforme", "Roupas de Aventura", "Vestes Mágicas", "Traje Futurista", "Roupas Tribais"],
+                armadura: {
+                    "Não especificado": ["Não especificado", "Sem Armadura"],
+                    "Leve": ["Couro Batido", "Corselete de Couro", "Gambeson/Acolchoada"],
+                    "Média": ["Cota de Malha", "Brigandina", "Peitoral de Aço", "Armadura de Escamas"],
+                    "Pesada": ["Armadura de Placas Completa", "Armadura Gótica", "Armadura Samurai"],
+                    "Sci-Fi": ["Exoesqueleto Leve", "Traje de Combate", "Armadura de Energia", "Nano-traje", "Power Armor"],
+                    "Exótica": ["Armadura de Osso", "Armadura de Quitina", "Armadura de Cristal"]
+                },
+                armas: {
+                    "Não especificado": ["Não especificado", "Desarmado(a)"],
+                    "Lâminas": ["Espada Longa", "Espada Curta", "Adaga", "Katana", "Cimitarra", "Rapieira"],
+                    "Impacto": ["Maça", "Martelo de Guerra", "Clava", "Bastão"],
+                    "Haste": ["Lança", "Alabarda", "Tridente"],
+                    "Distância": ["Arco Longo", "Besta Pesada", "Facas de Arremesso"],
+                    "Fogo/Sci-Fi": ["Pistola Flintlock", "Pistola Laser", "Rifle de Plasma"],
+                    "Mágicas": ["Cajado Mágico", "Varinha", "Orbe", "Grimório"]
+                }
+            },
+            narrativa: {
+                temaGeral: ["Não especificado", "Aventura", "Batalha", "Exploração", "Mistério", "Sobrevivência", "Terror", "Romance", "Tragédia", "Comédia"],
+                cenarioDetalhado: {
+                    "Não especificado": ["Não especificado"],
+                    "Natureza": ["Floresta Densa", "Montanhas Nevadas", "Deserto", "Pântano", "Caverna de Cristais"],
+                    "Urbano": ["Castelo Medieval", "Cidade Futurista", "Mercado Movimentado", "Viela Sombria"],
+                    "Exótico": ["Cidade Flutuante", "Reino Subterrâneo", "Palácio de Gelo", "Nave Espacial"]
+                },
+                acaoPose: {
+                    "Não especificado": ["Não especificado", "Pose Neutra"],
+                    "Estáticas": ["Sentado(a) em trono", "Meditando", "Observando o horizonte"],
+                    "Dinâmicas": ["Correndo", "Saltando", "Brandindo arma", "Lançando feitiço"]
+                },
+                expressaoFacial: ["Não especificado", "Neutra", "Sorrindo", "Triste", "Irritado(a)", "Surpreso(a)", "Confiante", "Assustado(a)"],
+            },
+            // Data from CHARGENV8 (Style-based lists)
+            styleLists: {
+                artists: { title: "Artistas", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-indigo-400"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M15.23 5.23L9.17 10.17c-.4.39-.4 1.02 0 1.41l5.3 5.3c.39.39 1.02.39 1.41 0l.71-.71c.39-.39.39-1.02 0-1.41L11.7 10.88l4.24-4.24c.39-.39.39-1.02 0-1.41l-.71-.71c-.39-.4-.08-1.03.31-1.42z"/></svg>`, items: ['Abigail Larson', 'Adam Hughes', 'Akira Toriyama', 'Alphonse Mucha', 'Anato Finnstark', 'Andreas Rocha', 'Ayami Kojima', 'Caspar David Friedrich', 'Frank Frazetta', 'Greg Rutkowski', 'H.R. Giger', 'Hayao Miyazaki', 'J.C. Leyendecker', 'James Jean', 'John Singer Sargent', 'Katsuhiro Otomo', 'Kim Jung Gi', 'Lois van Baarle (Loish)', 'Magali Villeneuve', 'Makoto Shinkai', 'Mike Mignola', 'Moebius', 'Seb McKinnon', 'Syd Mead', 'Yoshitaka Amano', 'Zdzisław Beksiński'] },
+                media: { title: "Mídia/Técnica", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-teal-400"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path></svg>`, items: ['aerógrafo', 'aquarela', 'arte digital', 'colagem', 'desenho com grafite', 'escultura', 'giz pastel', 'ilustração', 'óleo sobre tela', 'pixel art', 'pintura acrílica', 'tinta nanquim', 'xilogravura'] },
+                aesthetics: { title: "Estética", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-3 text-yellow-400"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`, items: ['Academia Sombria', 'Afrofuturismo', 'Art Déco', 'Art Nouveau', 'Biopunk', 'Cyberpunk', 'Dieselpunk', 'Distopia', 'Fantasia Sombria', 'Film Noir', 'Gótico', 'Minimalismo', 'Pós-apocalíptico', 'Retrofuturismo', 'Solarpunk', 'Steampunk', 'Surrealismo', 'Vaporwave'] },
+                acessorios: { title: "Acessórios & Itens", icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-cyan-400"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.658-.463 1.243-1.119 1.243H5.502c-.656 0-1.19-.585-1.12-1.243l1.263-12a1.125 1.125 0 0 1 1.12-1.007h8.475a1.125 1.125 0 0 1 1.12 1.007Z" /></svg>`, items: ["Amuleto", "Anel Mágico", "Bolsa de Cinto", "Cajado", "Capa com Capuz", "Chapéu/Elmo", "Coroa/Tiara", "Luvas/Manoplas", "Mapa", "Máscara", "Mochila", "Óculos/Monóculo", "Orbe de Cristal", "Varinha Mágica"] },
+                visuals: { title: "Efeitos Visuais", icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-pink-400"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672Zm-7.518-.267A8.25 8.25 0 1 1 20.25 10.5M8.288 14.212A5.25 5.25 0 1 1 17.25 10.5" /></svg>`, items: ["4K/8K", "Foco Nítido", "Iluminação de Estúdio", "Luz Volumétrica", "Contraluz", "Iluminação Dramática", "Névoa/Neblina", "HDR", "Vazamento de Luz", "Lens Flare", "Grão Cinematográfico", "Bokeh", "Plano Detalhe", "Plano Médio", "Plano Inteiro", "Ângulo Baixo (Contra-plongée)"] }
+            }
+        };
+        const presets = {
+            "guerreiraOrc": { nomePersonagem: "Grakka, a Esmagadora", racaEspecie: "Fantasia Clássica|Orc", genero: "Feminino", arquetipo: "O Herói", tipoCorpo: "Musculoso(a)", corPele: "Verde-acinzentado", penteado: "Comprimentos|Longo", vestimentaPrincipal: "Roupas de Aventura", armadura: "Pesada|Armadura de Placas Completa", armas: "Lâminas|Machado de Batalha", temaGeral: "Batalha", acaoPose: "Dinâmicas|Brandindo arma", expressaoFacial: "Irritado(a)", styleSelectedTerms: ["Frank Frazetta", "Fantasia Sombria"]},
+            "magaElfa": { nomePersonagem: "Lyra Noctu", racaEspecie: "Fantasia Clássica|Elfo (Elfo Negro/Drow)", genero: "Feminino", arquetipo: "O Sábio", tipoCorpo: "Esguio", corPele: "Cinza obsidiana", corCabelo: "Branco-prateado", penteado: "Comprimentos|Muito Longo (cintura ou mais)", vestimentaPrincipal: "Vestes Mágicas", armas: "Mágicas|Cajado Mágico", temaGeral: "Mistério", cenarioDetalhado: "Natureza|Caverna de Cristais", acaoPose: "Dinâmicas|Lançando feitiço", expressaoFacial: "Concentrado(a)", styleSelectedTerms: ["Yoshitaka Amano", "Abigail Larson", "Gótico", "Luz Volumétrica"]},
+            "ciborgueHacker": { nomePersonagem: "Zero", racaEspecie: "Sci-Fi|Ciborgue", genero: "Não-binário", arquetipo: "O Trapaceiro", tipoCorpo: "Atlético", vestimentaPrincipal: "Traje Futurista", armadura: "Sci-Fi|Exoesqueleto Leve", armas: "Fogo/Sci-Fi|Pistola Laser", temaGeral: "Aventura", cenarioDetalhado: "Urbano|Cidade Futurista", acaoPose: "Estáticas|Observando o horizonte", expressaoFacial: "Confiante", styleSelectedTerms: ["Syd Mead", "Cyberpunk", "Lens Flare", "4K/8K"] }
+        };
+
+        // --- CORE FUNCTIONS ---
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast-notification');
+            if(!toast) return;
+            toast.textContent = message;
+            toast.className = 'fixed bottom-5 right-5 text-white py-3 px-6 rounded-lg shadow-xl text-sm z-50 transition-all duration-300 opacity-0 transform translate-y-10';
+            toast.classList.remove('opacity-0', 'translate-y-10');
+            switch (type) {
+                case 'success': toast.classList.add('bg-green-600'); break;
+                case 'error': toast.classList.add('bg-red-600'); break;
+                case 'warning': toast.classList.add('bg-amber-500'); break;
+                default: toast.classList.add('bg-violet-600'); break;
+            }
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-10');
+            }, 3000);
+        }
+
+        function copyUsingExecCommand(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                if (document.execCommand('copy')) {
+                    showToast('Copiado para a área de transferência!', 'success');
+                } else {
+                    showToast('Falha ao copiar (fallback).', 'error');
+                }
+            } catch (err) {
+                showToast('Erro ao copiar (fallback).', 'error');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        async function callGeminiAPI(promptText, loaderElement, buttonElement) {
+            if (loaderElement) loaderElement.classList.remove('hidden');
+            if (buttonElement) {
+                 buttonElement.disabled = true;
+                 buttonElement.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+            const apiKey = ""; // API key is handled by the environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ role: "user", parts: [{ text: promptText }] }] };
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Erro na API Gemini: ${response.statusText} - ${errorData?.error?.message || 'Detalhes não disponíveis'}`);
+                }
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    console.warn("Resposta da API Gemini não contém dados esperados:", result);
+                    showToast('A resposta da IA estava vazia ou malformada.', 'warning');
+                    return null;
+                }
+            } catch (error) {
+                console.error('Erro ao chamar API Gemini:', error);
+                showToast(`Erro na IA: ${error.message}`, 'error');
+                return null;
+            } finally {
+                if (loaderElement) loaderElement.classList.add('hidden');
+                if (buttonElement) {
+                    buttonElement.disabled = false;
+                    buttonElement.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+        }
+        
+        async function callImagenAPI(promptText, loaderElement, buttonElement) {
+            if (loaderElement) loaderElement.classList.remove('hidden');
+            if (buttonElement) {
+                 buttonElement.disabled = true;
+                 buttonElement.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+            const apiKey = ""; // API key is handled by the environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+            const payload = { instances: [{ prompt: promptText }], parameters: { "sampleCount": 1 } };
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Erro na API Imagen: ${response.statusText} - ${errorData?.error?.message || 'Detalhes não disponíveis'}`);
+                }
+                const result = await response.json();
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    return `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                } else {
+                    console.warn("Resposta da API Imagen não contém dados esperados:", result);
+                    showToast('A resposta da IA de imagem estava vazia.', 'warning');
+                    return null;
+                }
+            } catch (error) {
+                console.error('Erro ao gerar imagem com API Imagen:', error);
+                showToast(`Erro na geração de imagem: ${error.message}`, 'error');
+                return null;
+            } finally {
+                if (loaderElement) loaderElement.classList.add('hidden');
+                if (buttonElement) {
+                    buttonElement.disabled = false;
+                    buttonElement.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+        }
+
+        // --- UI & FORM RENDERING FUNCTIONS ---
+
+        function createAccordionButton(key, title, icon, type) {
+            return `<div class="category-wrapper">
+                        <button data-key="${key}" data-type="${type}" class="category-button w-full flex items-center justify-start p-3 bg-slate-800 rounded-lg shadow-md hover:bg-slate-700/50 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all duration-200 h-full">
+                            ${icon} <span class="ml-3 text-sm font-semibold text-slate-300">${title}</span>
+                        </button>
+                        <div id="accordion-${key}" class="accordion-content bg-slate-800/50 rounded-b-lg px-4 -mt-1">
+                        </div>
+                    </div>`;
+        }
+
+        function createStyleAccordionContent(key, targetElement) {
+            let itemsHTML = '';
+            appData.styleLists[key].items.sort().forEach(item => {
+                const isSelected = styleSelectedTerms.has(item) ? 'selected-item' : '';
+                itemsHTML += `<a href="#" class="style-term-item block px-3 py-1.5 text-sm text-slate-200 hover:bg-violet-500/50 rounded-md ${isSelected}" data-term="${item}">${item}</a>`;
+            });
+            targetElement.innerHTML = `<div class="max-h-64 overflow-y-auto">${itemsHTML}</div>`;
+        }
+
+        function createFormAccordionContent(sectionId, targetElement) {
+            const sectionsHTML = {
+                identidade: `
+                    <div class="space-y-4">
+                        <div>
+                            <label for="nomePersonagem" class="block text-xs font-medium text-slate-400 mb-1">Nome</label>
+                            <div class="flex items-center">
+                                <input type="text" id="nomePersonagem" name="nomePersonagem">
+                                <button type="button" id="generateNameBtn" title="Gerar Nome com IA" class="ai-suggestion-btn">✨<div id="nameLoader" class="loader small-loader ml-1 hidden"></div></button>
+                            </div>
+                        </div>
+                        <div><label for="genero" class="block text-xs font-medium text-slate-400 mb-1">Gênero</label><select id="genero" name="genero"></select></div>
+                        <div><label for="racaEspecie" class="block text-xs font-medium text-slate-400 mb-1">Raça/Espécie</label><select id="racaEspecie" name="racaEspecie"></select></div>
+                        <div><label for="arquetipo" class="block text-xs font-medium text-slate-400 mb-1">Arquétipo</label><select id="arquetipo" name="arquetipo"></select></div>
+                    </div>`,
+                aparencia: `
+                    <div class="space-y-4">
+                        <div><label for="tipoCorpo" class="block text-xs font-medium text-slate-400 mb-1">Tipo de Corpo</label><select id="tipoCorpo" name="tipoCorpo"></select></div>
+                        <div><label for="texturaPele" class="block text-xs font-medium text-slate-400 mb-1">Textura da Pele</label><select id="texturaPele" name="texturaPele"></select></div>
+                        <div><label for="penteado" class="block text-xs font-medium text-slate-400 mb-1">Penteado</label><select id="penteado" name="penteado"></select></div>
+                        <div><label for="corPele" class="block text-xs font-medium text-slate-400 mb-1">Cor da Pele</label><input type="text" id="corPele" name="corPele"></div>
+                        <div><label for="corCabelo" class="block text-xs font-medium text-slate-400 mb-1">Cor do Cabelo</label><input type="text" id="corCabelo" name="corCabelo"></div>
+                        <div><label for="corOlhos" class="block text-xs font-medium text-slate-400 mb-1">Cor dos Olhos</label><input type="text" id="corOlhos" name="corOlhos"></div>
+                    </div>`,
+                trajes: `
+                    <div class="space-y-4">
+                        <div><label for="vestimentaPrincipal" class="block text-xs font-medium text-slate-400 mb-1">Vestimenta Principal</label><select id="vestimentaPrincipal" name="vestimentaPrincipal"></select></div>
+                        <div><label for="armadura" class="block text-xs font-medium text-slate-400 mb-1">Armadura</label><select id="armadura" name="armadura"></select></div>
+                        <div><label for="armas" class="block text-xs font-medium text-slate-400 mb-1">Arma</label><select id="armas" name="armas"></select></div>
+                    </div>`,
+                narrativa: `
+                     <div class="space-y-4">
+                        <div><label for="temaGeral" class="block text-xs font-medium text-slate-400 mb-1">Tema Geral</label><select id="temaGeral" name="temaGeral"></select></div>
+                        <div><label for="cenarioDetalhado" class="block text-xs font-medium text-slate-400 mb-1">Cenário</label><select id="cenarioDetalhado" name="cenarioDetalhado"></select></div>
+                        <div><label for="acaoPose" class="block text-xs font-medium text-slate-400 mb-1">Ação/Pose</label><select id="acaoPose" name="acaoPose"></select></div>
+                        <div><label for="expressaoFacial" class="block text-xs font-medium text-slate-400 mb-1">Expressão Facial</label><select id="expressaoFacial" name="expressaoFacial"></select></div>
+                    </div>`,
+                desenvolvimento: `
+                    <div class="space-y-4">
+                        <div>
+                            <label for="caracteristicasFisicas" class="block text-xs font-medium text-slate-400 mb-1">Características Essenciais</label>
+                            <textarea id="caracteristicasFisicas" name="caracteristicasFisicas" rows="3"></textarea>
+                        </div>
+                        <div>
+                            <label for="historiaFundoGerada" class="block text-xs font-medium text-slate-400 mb-1">História de Fundo</label>
+                            <textarea id="historiaFundoGerada" name="historiaFundoGerada" rows="5"></textarea>
+                            <button type="button" id="generateBackstoryBtn" class="mt-1 w-full text-xs bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-semibold py-1 px-2 rounded-lg flex items-center justify-center">Gerar História <div id="backstoryLoader" class="loader small-loader ml-2 hidden"></div></button>
+                        </div>
+                        <div>
+                            <label for="promptNegativo" class="block text-xs font-medium text-slate-400 mb-1">Prompt Negativo (Evitar)</label>
+                            <input type="text" id="promptNegativo" name="promptNegativo" placeholder="deformado, texto, watermark...">
+                        </div>
+                    </div>`,
+                default: `<p class="text-slate-400">Conteúdo para a seção '${sectionId}' em desenvolvimento.</p>`
+            };
+            targetElement.innerHTML = sectionsHTML[sectionId] || sectionsHTML.default;
+        }
+
+        function populateSelect(selectId, options, hasOptgroups = false) {
+            const selectElement = document.getElementById(selectId);
+            if (!selectElement) return;
+            selectElement.innerHTML = ''; 
+            if (hasOptgroups) {
+                for (const groupLabel in options) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = groupLabel;
+                    options[groupLabel].forEach(optionValue => {
+                        const option = document.createElement('option');
+                        option.value = `${groupLabel}|${optionValue}`;
+                        option.textContent = optionValue;
+                        optgroup.appendChild(option);
+                    });
+                    selectElement.appendChild(optgroup);
+                }
+            } else {
+                options.forEach(optionValue => {
+                    const option = document.createElement('option');
+                    option.value = optionValue;
+                    option.textContent = optionValue;
+                    selectElement.appendChild(option);
+                });
+            }
+        }
+        
+        function populateAllCharacterFields() {
+             populateSelect('genero', appData.identidade.genero);
+             populateSelect('racaEspecie', appData.identidade.racaEspecie, true);
+             populateSelect('arquetipo', appData.identidade.arquetipo);
+             populateSelect('tipoCorpo', appData.aparencia.tipoCorpo);
+             populateSelect('penteado', appData.aparencia.penteado, true);
+             populateSelect('texturaPele', appData.aparencia.texturaPele);
+             populateSelect('vestimentaPrincipal', appData.trajes.vestimentaPrincipal);
+             populateSelect('armadura', appData.trajes.armadura, true);
+             populateSelect('armas', appData.trajes.armas, true);
+             populateSelect('temaGeral', appData.narrativa.temaGeral);
+             populateSelect('cenarioDetalhado', appData.narrativa.cenarioDetalhado, true);
+             populateSelect('acaoPose', appData.narrativa.acaoPose, true);
+             populateSelect('expressaoFacial', appData.narrativa.expressaoFacial);
+             
+             const presetSelect = document.getElementById('presets');
+             if (presetSelect) {
+                 presetSelect.innerHTML = '<option value="">Selecione um preset...</option>';
+                 Object.keys(presets).forEach(key => {
+                     const option = document.createElement('option');
+                     option.value = key;
+                     option.textContent = presets[key].nomePersonagem;
+                     presetSelect.appendChild(option);
+                 });
+             }
+        }
+        
+        function toggleAccordion(button, content) {
+            if (!content) return;
+            const isVisible = content.classList.contains('open');
+            
+            // Close the previously open accordion in the sidebar
+            if (openAccordion && openAccordion !== content) {
+                openAccordion.classList.remove('open');
+                const oldButton = document.querySelector(`.category-button[data-key="${openAccordion.id.replace('accordion-','')}"`);
+                if(oldButton) oldButton.parentElement.classList.remove('active');
+            }
+            
+            content.classList.toggle('open');
+            button.parentElement.classList.toggle('active');
+
+            if (content.classList.contains('open')) {
+                openAccordion = content;
+            } else if (openAccordion === content) {
+                openAccordion = null;
+            }
+        }
+
+        function toggleMainSection(header) {
+             const content = header.nextElementSibling;
+             if (!content) return;
+             const isVisible = content.classList.contains('open');
+
+             // Close the previously open main section
+             if(openMainSection && openMainSection !== content) {
+                 openMainSection.classList.remove('open');
+                 openMainSection.previousElementSibling.classList.remove('active');
+             }
+
+             content.classList.toggle('open');
+             header.classList.toggle('active');
+
+             if(content.classList.contains('open')) {
+                 openMainSection = content;
+             } else if (openMainSection === content) {
+                 openMainSection = null;
+             }
+        }
+        
+        function renderAllCategories() {
+            const container = document.getElementById('categories-container');
+            container.innerHTML = '';
+            
+            const allCategories = [
+                // Formulários
+                { id: 'identidade', title: 'Identidade', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-violet-400"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>`, type: 'form' },
+                { id: 'aparencia', title: 'Aparência', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-sky-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.39m3.421 3.415a3 3 0 0 0 5.78-1.128 2.25 2.25 0 0 1 2.4-2.245 4.5 4.5 0 0 0-8.4 2.245c0 .399.078.78.22 1.128Zm0 0l3.388 1.62m-5.043-.025a15.994 15.994 0 0 1-1.622-3.39m3.421 3.415Z" /></svg>`, type: 'form' },
+                { id: 'trajes', title: 'Trajes e Armas', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-rose-400"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.664 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.631 5.631L21.25 9.5l-5.208-5.209L9.5 11.042l5.63 5.63Z" /></svg>`, type: 'form' },
+                { id: 'narrativa', title: 'Narrativa', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 mr-3 text-amber-400"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`, type: 'form' },
+                { id: 'desenvolvimento', title: 'Desenvolvimento', icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-3 text-fuchsia-400"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" /></svg>`, type: 'form' },
+                
+                // Listas de Estilo (multi-seleção)
+                ...Object.keys(appData.styleLists).map(key => ({
+                    id: key,
+                    title: appData.styleLists[key].title,
+                    icon: appData.styleLists[key].icon,
+                    type: 'style'
+                }))
+            ];
+
+            allCategories.forEach(cat => {
+                container.innerHTML += createAccordionButton(cat.id, cat.title, cat.icon, cat.type);
+            });
+
+            allCategories.forEach(cat => {
+                const accordionContent = document.getElementById(`accordion-${cat.id}`);
+                if (cat.type === 'style') {
+                    createStyleAccordionContent(cat.id, accordionContent);
+                } else {
+                    createFormAccordionContent(cat.id, accordionContent);
+                }
+            });
+
+            populateAllCharacterFields();
+        }
+
+        // --- FEATURE FUNCTIONS (IA, File Handling, etc.) ---
+
+        function setupImageAnalysis() {
+            const imageUpload = document.getElementById('imageUpload');
+            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewPlaceholder = document.getElementById('imagePreviewPlaceholder');
+            const analyzeImageBtn = document.getElementById('analyzeImageBtn');
+            const analyzeLoader = document.getElementById('analyzeLoader');
+
+            imageUpload.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) {
+                    base64ImageData = null;
+                    return;
+                }
+                if (file.size > 4 * 1024 * 1024) { 
+                    showToast('Erro: Imagem excede 4MB.', 'error');
+                    imageUpload.value = ''; 
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreview.classList.remove('hidden');
+                    imagePreviewPlaceholder.classList.add('hidden');
+                    base64ImageData = e.target.result.split(',')[1]; 
+                }
+                reader.readAsDataURL(file);
+            });
+
+            analyzeImageBtn.addEventListener('click', async () => {
+                if (!base64ImageData) {
+                    showToast('Por favor, carregue uma imagem primeiro.', 'warning');
+                    return;
+                }
+                
+                const promptParaGemini = `Analise esta imagem de um personagem. Extraia as informações e formate a resposta com um marcador por linha (ex: "Cor da Pele: [valor]"). Campos para extrair: Gênero Aparente, Tipo de Corpo, Cor dos Olhos, Cor do Cabelo, Penteado, Cor da Pele, Vestimenta Principal, Armadura, Acessórios Visíveis, Arma Principal, Pose, Expressão Facial, Estilo Artístico da Imagem, Cenário Imediato, Descrição Geral Detalhada. Se algo não for visível, omita o marcador.`;
+
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: promptParaGemini }, { inlineData: { mimeType: imageUpload.files[0].type, data: base64ImageData } }] }]
+                };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                
+                const text = await callGeminiAPI(promptParaGemini, analyzeLoader, analyzeImageBtn, apiUrl, payload);
+                if (text) {
+                    parseAndFillForm(text);
+                    showToast('Análise da imagem concluída!', 'success');
+                }
+            });
+        }
+        
+        function setupTextAnalysis() {
+            const fileInput = document.getElementById('analyzeTxtFileInput');
+            const analyzeBtn = document.getElementById('analyzeTxtAndFillBtn');
+            const loader = document.getElementById('analyzeTxtLoader');
+
+            analyzeBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (event) => {
+                 const file = event.target.files[0];
+                 if (!file) return;
+
+                 const reader = new FileReader();
+                 reader.onload = async (e) => {
+                    const fileContent = e.target.result;
+                    if (!fileContent.trim()) {
+                        showToast('O arquivo de texto está vazio.', 'warning');
+                        return;
+                    }
+                    const promptParaGemini = `Analise a seguinte descrição de personagem e extraia as informações para os campos do formulário. Formate a resposta com um marcador por linha (ex: "Nome: [valor]"). Campos: Nome, Gênero, Raça/Espécie, Arquétipo, Tipo de Corpo, Cor da Pele, Cor do Cabelo, Penteado, Cor dos Olhos, Vestimenta Principal, Armadura, Arma, Ação/Pose, Expressão Facial, Cenário, Tema, Características Essenciais. Texto: \n---\n${fileContent}`;
+                    
+                    const extractedText = await callGeminiAPI(promptParaGemini, loader, analyzeBtn);
+                    if (extractedText) {
+                        parseAndFillForm(extractedText);
+                        showToast('Formulário preenchido com base no texto!', 'success');
+                    }
+                 };
+                 reader.readAsText(file);
+                 event.target.value = ''; 
+            });
+        }
+
+        function parseAndFillForm(apiResponseText) {
+            const lines = apiResponseText.split('\n');
+            const data = {};
+            lines.forEach(line => {
+                const parts = line.split(': ');
+                if (parts.length > 1) {
+                    data[parts[0].trim().toLowerCase()] = parts.slice(1).join(': ').trim();
+                }
+            });
+
+            const fieldMappings = {
+                'nome': 'nomePersonagem', 'gênero': 'genero', 'gênero aparente': 'genero', 'raça/espécie': 'racaEspecie',
+                'arquétipo': 'arquetipo', 'tipo de corpo': 'tipoCorpo', 'cor da pele': 'corPele', 'cor do cabelo': 'corCabelo',
+                'penteado': 'penteado', 'cor dos olhos': 'corOlhos', 'vestimenta principal': 'vestimentaPrincipal',
+                'armadura': 'armadura', 'arma': 'armas', 'arma principal': 'armas', 'ação/pose': 'acaoPose', 'pose': 'acaoPose', 'expressão facial': 'expressaoFacial',
+                'cenário': 'cenarioDetalhado', 'cenário imediato': 'cenarioDetalhado', 'tema': 'temaGeral', 'descrição geral detalhada': 'caracteristicasFisicas',
+                'características essenciais': 'caracteristicasFisicas', 'estilo artístico da imagem': 'style'
+            };
+
+            for (const key in data) {
+                const formFieldId = fieldMappings[key];
+                if (formFieldId) {
+                    if (formFieldId === 'style') {
+                        const styles = data[key].split(',').map(s => s.trim());
+                        styles.forEach(style => {
+                            const matchingTerm = Array.from(document.querySelectorAll('.style-term-item')).find(el => el.dataset.term.toLowerCase().includes(style.toLowerCase()));
+                            if(matchingTerm) styleSelectedTerms.add(matchingTerm.dataset.term);
+                        });
+                    } else {
+                        const element = document.getElementById(formFieldId);
+                        if (element) {
+                            if (element.tagName === 'SELECT') {
+                                const valueToFind = data[key];
+                                for (let option of element.options) {
+                                    if (option.textContent.toLowerCase().includes(valueToFind.toLowerCase())) {
+                                        element.value = option.value;
+                                        break;
+                                    }
+                                }
+                            } else {
+                                element.value = data[key];
+                            }
+                        }
+                    }
+                }
+            }
+            // Update UI for style terms
+            document.querySelectorAll('.style-term-item').forEach(el => {
+                 el.classList.toggle('selected-item', styleSelectedTerms.has(el.dataset.term));
+            });
+        }
+
+        async function generateCharacterName() {
+            const raca = document.getElementById('racaEspecie').selectedOptions[0]?.textContent || "personagem";
+            const genero = document.getElementById('genero').value !== "Não especificado" ? document.getElementById('genero').value : "";
+            let promptText = `Sugira um nome criativo para um(a) ${raca} ${genero}. Forneça apenas o nome.`;
+            const nameText = await callGeminiAPI(promptText, document.getElementById('nameLoader'), document.getElementById('generateNameBtn'));
+            if (nameText) {
+                document.getElementById('nomePersonagem').value = nameText.trim();
+                showToast('Nome gerado!', 'success');
+            }
+        }
+        
+        async function generateBackstory() {
+             const context = getFormDataAsObject();
+             let promptText = `Crie uma breve história (2-3 parágrafos) para ${context.nomePersonagem || 'um personagem'}, um(a) ${context.racaEspecie || ''} ${context.arquetipo || ''}. Considere que as características são: ${context.caracteristicasFisicas || 'não descritas'}. O tema é ${context.temaGeral || 'aventura'}.`;
+             const backstoryText = await callGeminiAPI(promptText, document.getElementById('backstoryLoader'), document.getElementById('generateBackstoryBtn'));
+             if(backstoryText) {
+                 document.getElementById('historiaFundoGerada').value = backstoryText;
+                 showToast('História gerada!', 'success');
+             }
+        }
+
+        async function generateImagePreview() {
+            const promptText = document.getElementById('generatedPrompt').value;
+            if (!promptText) {
+                showToast('Gere um prompt primeiro.', 'warning');
+                return;
+            }
+
+            const imageGenLoader = document.getElementById('imageGenLoader');
+            const btn = document.getElementById('generateImagePreviewBtn');
+            const imagePreviewEl = document.getElementById('generatedImagePreview');
+            const imagePlaceholderEl = document.getElementById('generatedImagePlaceholder');
+
+            imagePreviewEl.classList.add('hidden');
+            imagePlaceholderEl.textContent = "Gerando imagem...";
+            imagePlaceholderEl.classList.remove('hidden');
+
+            const imageUrl = await callImagenAPI(promptText, imageGenLoader, btn);
+
+            if (imageUrl) {
+                imagePreviewEl.src = imageUrl;
+                imagePreviewEl.classList.remove('hidden');
+                imagePlaceholderEl.classList.add('hidden');
+                showToast('Imagem gerada!', 'success');
+            } else {
+                imagePlaceholderEl.textContent = "Falha ao gerar imagem.";
+            }
+        }
+
+        function getFormDataAsObject() {
+            const data = {};
+            const form = document.getElementById('characterForm');
+            new FormData(form).forEach((value, key) => {
+                if (value && value !== "Não especificado" && !value.endsWith("|Não especificado")) {
+                   data[key] = value.includes('|') ? value.split('|')[1] : value;
+                }
+            });
+            data.styleSelectedTerms = Array.from(styleSelectedTerms);
+            return data;
+        }
+
+        function fillFormWithData(data) {
+            clearAllFields(false);
+            const form = document.getElementById('characterForm');
+            for(const key in data){
+                if (key === 'styleSelectedTerms') {
+                    styleSelectedTerms = new Set(data[key]);
+                } else if(form.elements[key]){
+                     const element = form.elements[key];
+                     if(element.tagName === 'SELECT'){
+                         let found = false;
+                         for(let opt of element.options){
+                             const optText = opt.textContent;
+                             const optVal = opt.value.includes('|') ? opt.value.split('|')[1] : opt.value;
+                             if(optText === data[key] || optVal === data[key]){
+                                element.value = opt.value;
+                                found = true;
+                                break;
+                             }
+                         }
+                     } else {
+                         element.value = data[key];
+                     }
+                }
+            }
+            document.querySelectorAll('.style-term-item').forEach(el => {
+                el.classList.toggle('selected-item', styleSelectedTerms.has(el.dataset.term));
+            });
+        }
+
+        function saveCharacterAsTxt() {
+            const characterData = getFormDataAsObject();
+            const characterName = characterData.nomePersonagem || 'personagem_chargen_pro';
+            const filename = `${characterName.replace(/\s+/g, '_').toLowerCase()}.txt`;
+            const dataStr = JSON.stringify(characterData, null, 2); 
+            
+            const blob = new Blob([dataStr], {type: "text/plain;charset=utf-8"});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast(`Personagem salvo como ${filename}!`, 'success');
+        }
+
+        function loadCharacterFromTxt(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const characterData = JSON.parse(e.target.result); 
+                    fillFormWithData(characterData);
+                    showToast(`Personagem carregado!`, 'success');
+                } catch (error) {
+                    showToast('Erro ao carregar: Arquivo inválido.', 'error');
+                } finally {
+                     event.target.value = ''; 
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function applySelectedPreset() {
+            const presetSelect = document.getElementById('presets');
+            const presetKey = presetSelect.value;
+            if (presetKey && presets[presetKey]) {
+                const presetData = presets[presetKey];
+                // Manually convert the simple array from the preset to a Set for state management
+                const presetTerms = Array.isArray(presetData.styleSelectedTerms) ? new Set(presetData.styleSelectedTerms) : new Set();
+                const dataToFill = {...presetData, styleSelectedTerms: Array.from(presetTerms)};
+
+                fillFormWithData(dataToFill);
+                showToast(`Preset "${presetData.nomePersonagem}" aplicado!`, 'success');
+            }
+        }
+
+        function clearAllFields(notify = true) {
+            document.getElementById('characterForm').reset();
+            styleSelectedTerms.clear();
+            document.querySelectorAll('.selected-item').forEach(el => el.classList.remove('selected-item'));
+            document.getElementById('generatedPrompt').value = '';
+            
+            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewPlaceholder = document.getElementById('imagePreviewPlaceholder');
+            imagePreview.classList.add('hidden');
+            imagePreview.src = "#";
+            imagePreviewPlaceholder.classList.remove('hidden');
+            document.getElementById('imageUpload').value = ''; 
+            base64ImageData = null;
+
+            const generatedImagePreviewEl = document.getElementById('generatedImagePreview');
+            const generatedImagePlaceholderEl = document.getElementById('generatedImagePlaceholder');
+            generatedImagePreviewEl.classList.add('hidden');
+            generatedImagePreviewEl.src = "#";
+            generatedImagePlaceholderEl.textContent = "A imagem gerada aparecerá aqui...";
+            generatedImagePlaceholderEl.classList.remove('hidden');
+            
+            if (notify) showToast('Todos os campos foram limpos!', 'info');
+        }
+
+        function randomizeAllFields() {
+            clearAllFields(false);
+            const presetKeys = Object.keys(presets);
+            const randomPresetKey = presetKeys[Math.floor(Math.random() * presetKeys.length)];
+            
+            if (randomPresetKey) {
+                const presetData = presets[randomPresetKey];
+                fillFormWithData(presetData);
+                showToast('Preset aleatório aplicado!', 'info');
+            }
+        }
+        
+        function generatePrompt(type) {
+            const formData = getFormDataAsObject();
+            let compactParts = [];
+            let detailedParts = [];
+
+            // Define order for a more logical prompt structure
+            const orderedKeys = ['nomePersonagem', 'caracteristicasFisicas', 'genero', 'racaEspecie', 'arquetipo', 'tipoCorpo', 'texturaPele', 'corPele', 'corCabelo', 'penteado', 'corOlhos', 'vestimentaPrincipal', 'armadura', 'armas', 'temaGeral', 'cenarioDetalhado', 'acaoPose', 'expressaoFacial', 'historiaFundoGerada', 'promptNegativo'];
+
+            // Add style terms first for compact prompt
+            if (formData.styleSelectedTerms.length > 0) {
+                const styleString = formData.styleSelectedTerms.join(', ');
+                compactParts.push(styleString);
+                detailedParts.push(`Estilos: ${styleString}`);
+            }
+
+            orderedKeys.forEach(key => {
+                if (formData[key]) {
+                    const value = formData[key];
+                    compactParts.push(value);
+                    const label = document.querySelector(`label[for="${key}"]`)?.textContent || key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1').trim();
+                    detailedParts.push(`${label}: ${value}`);
+                }
+            });
+
+            const rascunho = document.getElementById('rascunhoTextarea').value.trim();
+            if (rascunho) {
+                compactParts.push(rascunho);
+                detailedParts.push(`Notas de Rascunho: ${rascunho}`);
+            }
+            
+            const finalPrompt = type === 'detalhado' ? detailedParts.join(". ") : compactParts.join(", ");
+            document.getElementById('generatedPrompt').value = finalPrompt;
+            if (finalPrompt) showToast(`Prompt ${type} gerado!`, 'success');
+            else showToast('Nenhuma informação selecionada.', 'warning');
+        }
+
+        // --- INITIALIZATION ---
+        function initializeUI() {
+            // Render UI elements
+            renderAllCategories();
+
+            // Setup Sidebar Accordion
+            document.getElementById('categories-container').addEventListener('click', (e) => {
+                const button = e.target.closest('.category-button');
+                if (button) {
+                    e.preventDefault();
+                    toggleAccordion(button, document.getElementById(`accordion-${button.dataset.key}`));
+                    if (button.dataset.type === 'form') {
+                         if(document.getElementById('generateNameBtn')) document.getElementById('generateNameBtn').addEventListener('click', generateCharacterName);
+                         if(document.getElementById('generateBackstoryBtn')) document.getElementById('generateBackstoryBtn').addEventListener('click', generateBackstory);
+                    }
+                }
+                if (e.target.matches('.style-term-item')) {
+                    e.preventDefault();
+                    const term = e.target.dataset.term;
+                    e.target.classList.toggle('selected-item');
+                    if (styleSelectedTerms.has(term)) styleSelectedTerms.delete(term);
+                    else styleSelectedTerms.add(term);
+                }
+            });
+
+            // Setup Main Content Accordion
+            document.querySelectorAll('.main-section-header').forEach(header => {
+                header.addEventListener('click', () => toggleMainSection(header));
+            });
+            // Open "Prompt Final" by default
+            const promptHeader = document.querySelector('.main-section-header:nth-child(3)'); // Adjust if order changes
+            if(promptHeader) toggleMainSection(promptHeader);
+
+
+            // Main action buttons
+            document.getElementById('generateCompactPromptBtn').addEventListener('click', () => generatePrompt('compacto'));
+            document.getElementById('generateDetailedPromptBtn').addEventListener('click', () => generatePrompt('detalhado'));
+            document.getElementById('copyPromptBtn').addEventListener('click', () => copyUsingExecCommand(document.getElementById('generatedPrompt').value));
+            document.getElementById('randomizeAllBtn').addEventListener('click', randomizeAllFields);
+            document.getElementById('clearAllBtn').addEventListener('click', () => clearAllFields(true));
+
+            // Sidebar mobile controls
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const sideMenu = document.getElementById('sidebar');
+            const closeMenuBtn = document.getElementById('close-sidebar-btn');
+            hamburgerBtn.addEventListener('click', () => sideMenu.classList.remove('-translate-x-full'));
+            closeMenuBtn.addEventListener('click', () => sideMenu.classList.add('-translate-x-full'));
+
+            // Feature setups
+            setupImageAnalysis();
+            setupTextAnalysis();
+            document.getElementById('generateImagePreviewBtn').addEventListener('click', generateImagePreview);
+            
+            // Management buttons
+            document.getElementById('saveCharacterTxtBtn').addEventListener('click', saveCharacterAsTxt);
+            document.getElementById('loadCharacterBtn').addEventListener('click', () => document.getElementById('loadCharacterFileInput').click());
+            document.getElementById('loadCharacterFileInput').addEventListener('change', loadCharacterFromTxt);
+            document.getElementById('applyPresetBtn').addEventListener('click', applySelectedPreset);
+
+            // Rascunho (Scratchpad) setup
+            const openRascunhoBtn = document.getElementById('openRascunhoBtn');
+            const closeRascunhoBtn = document.getElementById('closeRascunhoBtn');
+            const rascunhoSidebar = document.getElementById('rascunhoSidebar');
+            openRascunhoBtn.addEventListener('click', () => { rascunhoSidebar.classList.remove('translate-x-full'); openRascunhoBtn.classList.add('hidden'); });
+            closeRascunhoBtn.addEventListener('click', () => { rascunhoSidebar.classList.add('translate-x-full'); openRascunhoBtn.classList.remove('hidden'); });
+            document.getElementById('addRascunhoToPromptBtn').addEventListener('click', () => {
+                const promptTextarea = document.getElementById('generatedPrompt');
+                const rascunhoText = document.getElementById('rascunhoTextarea').value.trim();
+                if(rascunhoText){
+                    promptTextarea.value += (promptTextarea.value ? ', ' : '') + rascunhoText;
+                    showToast('Rascunho adicionado!', 'success');
+                }
+            });
+            document.getElementById('clearRascunhoBtn').addEventListener('click', () => {
+                document.getElementById('rascunhoTextarea').value = '';
+                showToast('Rascunho limpo.', 'info');
+            });
+        }
+        
+        initializeUI();
+    });
+    </script>
+</body>
+</html>

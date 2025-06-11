@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Ideias de Histórias</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #1a202c;
+            margin-bottom: 25px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #4a5568;
+        }
+        select, textarea, input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #2d3748;
+            background-color: #f7fafc;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        select:focus, textarea:focus, input[type="text"]:focus {
+            border-color: #6366f1;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+        }
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        button {
+            background-color: #6366f1;
+            color: #ffffff;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+        }
+        button:hover {
+            background-color: #4f46e5;
+            transform: translateY(-2px);
+        }
+        #output {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e2e8f0;
+            border-radius: 10px;
+            text-align: left;
+            color: #2d3748;
+            white-space: pre-wrap; /* Preserve whitespace and line breaks */
+            word-wrap: break-word; /* Break long words */
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .loading-indicator {
+            display: none;
+            margin-top: 20px;
+            color: #6366f1;
+            font-weight: 500;
+        }
+        .error-message {
+            color: #ef4444;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold">Gerador de Ideias de Histórias</h1>
+
+        <div class="input-group">
+            <label for="genre">Escolha um Gênero:</label>
+            <select id="genre" class="shadow-sm">
+                <option value="">Selecione um gênero</option>
+                <option value="Ficção Científica">Ficção Científica</option>
+                <option value="Fantasia">Fantasia</option>
+                <option value="Mistério">Mistério</option>
+                <option value="Terror">Terror</option>
+                <option value="Romance">Romance</option>
+                <option value="Thriller">Thriller</option>
+                <option value="Aventura">Aventura</option>
+                <option value="Ficção Histórica">Ficção Histórica</option>
+                <option value="Distopia">Distopia</option>
+                <option value="Cyberpunk">Cyberpunk</option>
+                <option value="Steampunk">Steampunk</option>
+                <option value="Biopunk">Biopunk</option>
+                <option value="Solarpunk">Solarpunk</option>
+                <option value="Space Opera">Space Opera</option>
+                <option value="Cli-Fi (Climate Fiction)">Cli-Fi (Climate Fiction)</option>
+                <option value="Dieselpunk">Dieselpunk</option>
+                <option value="Atompunk">Atompunk</option>
+                <option value="Stonepunk">Stonepunk</option>
+                <option value="Splatterpunk">Splatterpunk</option>
+                <option value="Hopepunk">Hopepunk</option>
+                <option value="Mythpunk">Mythpunk</option>
+                <option value="New Weird">New Weird</option>
+                <option value="Noblebright">Noblebright</option>
+                <option value="Fantasia Sombria">Fantasia Sombria</option>
+                <option value="Fantasia Urbana">Fantasia Urbana</option>
+                <option value="Fantasia Épica">Fantasia Épica</option>
+                <option value="Baixa Fantasia">Baixa Fantasia</option>
+                <option value="Alta Fantasia">Alta Fantasia</option>
+                <option value="Magia Sombria">Magia Sombria</option>
+                <option value="Espada e Feitiçaria">Espada e Feitiçaria</option>
+                <option value="Medieval">Medieval</option>
+                <option value="Gótico">Gótico</option>
+                <option value="Pós-Apocalíptico">Pós-Apocalíptico</option>
+                <option value="Conto de Fadas">Conto de Fadas</option>
+                <option value="Sátira">Sátira</option>
+                <option value="Realismo Mágico">Realismo Mágico</option>
+                <option value="Ficção Especulativa">Ficção Especulativa</option>
+                <option value="Horror Cósmico">Horror Cósmico</option>
+                <option value="Horror Corporal">Horror Corporal</option>
+                <option value="Horror Psicológico">Horror Psicológico</option>
+                <option value="Ficção Detetivesca">Ficção Detetivesca</option>
+                <option value="True Crime">True Crime</option>
+                <option value="Hardboiled">Hardboiled</option>
+                <option value="Noir">Noir</option>
+                <option value="Suspense Psicológico">Suspense Psicológico</option>
+                <option value="Legal Thriller">Legal Thriller</option>
+                <option value="Medical Thriller">Medical Thriller</option>
+                <option value="Techno-Thriller">Techno-Thriller</option>
+                <option value="Erotic Romance">Erotic Romance</option>
+                <option value="Historical Romance">Historical Romance</option>
+                <option value="Paranormal Romance">Paranormal Romance</option>
+                <option value="Contemporary Romance">Contemporary Romance</option>
+                <option value="Young Adult (YA)">Young Adult (YA)</option>
+                <option value="New Adult (NA)">New Adult (NA)</option>
+                <option value="Middle Grade (MG)">Middle Grade (MG)</option>
+                <option value="Children's Literature">Children's Literature</option>
+                <option value="Fan Fiction">Fan Fiction</option>
+                <option value="Slam Poetry">Slam Poetry</option>
+                <option value="Novela Gráfica">Novela Gráfica</option>
+                <option value="Quadrinhos">Quadrinhos</option>
+                <option value="Biografia">Biografia</option>
+                <option value="Autobiografia">Autobiografia</option>
+                <option value="Memórias">Memórias</option>
+                <option value="Não Ficção Criativa">Não Ficção Criativa</option>
+                <option value="Jornalismo Literário">Jornalismo Literário</option>
+                <option value="ensaio">Ensaio</option>
+                <option value="Crítica">Crítica</option>
+                <option value="Guia">Guia</option>
+                <option value="Livro Didático">Livro Didático</option>
+                <option value="Livro de Referência">Livro de Referência</option>
+                <option value="Diário">Diário</option>
+                <option value="Epistolar">Epistolar</option>
+                <option value="Stream of Consciousness">Stream of Consciousness</option>
+                <option value="Metaficção">Metaficção</option>
+                <option value="Absurdo">Absurdo</option>
+                <option value="Realismo Sujo">Realismo Sujo</option>
+                <option value="Künstlerroman">Künstlerroman</option>
+                <option value="Bildungsroman">Bildungsroman</option>
+                <option value="Picaresco">Picaresco</option>
+                <option value="Utopian/Dystopian">Utopian/Dystopian</option>
+                <option value="Slice of Life">Slice of Life</option>
+                <option value="Pastoral">Pastoral</option>
+                <option value="Mito">Mito</option>
+                <option value="Lenda">Lenda</option>
+                <option value="Fábula">Fábula</option>
+                <option value="Parábola">Parábola</option>
+                <option value="Teatro">Teatro</option>
+                <option value="Roteiro">Roteiro</option>
+                <option value="Poesia Lírica">Poesia Lírica</option>
+                <option value="Poesia Narrativa">Poesia Narrativa</option>
+                <option value="Poesia Dramática">Poesia Dramática</option>
+                <option value="Haiku">Haiku</option>
+                <option value="Soneto">Soneto</option>
+                <option value="Verso Livre">Verso Livre</option>
+                <option value="Prosa Poética">Prosa Poética</option>
+                <option value="Dark Academia">Dark Academia</option>
+                <option value="Cozy Fantasy">Cozy Fantasy</option>
+                <option value="Grimdark">Grimdark</option>
+                <option value="Heroic Fantasy">Heroic Fantasy</option>
+                <option value="Urban Fantasy">Urban Fantasy</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="keywords">Palavras-chave (separadas por vírgula):</label>
+            <input type="text" id="keywords" placeholder="Ex: mistério, amor, aventura, tecnologia" class="shadow-sm">
+        </div>
+
+        <div class="input-group">
+            <label for="prompt">Prompt Adicional (opcional):</label>
+            <textarea id="prompt" placeholder="Ex: Um detetive particular em uma cidade chuvosa com um segredo..." class="shadow-sm"></textarea>
+        </div>
+
+        <button id="generateButton">Gerar Ideia</button>
+
+        <div id="loadingIndicator" class="loading-indicator">
+            Gerando sua ideia...
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <div id="output">
+            <!-- As ideias geradas aparecerão aqui -->
+        </div>
+    </div>
+
+    <script type="module">
+        // Importa as funções do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Variáveis globais fornecidas pelo ambiente Canvas
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let userId = null; // Para armazenar o ID do usuário
+
+        // Autenticação: tenta usar o token fornecido ou faz login anônimo
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                console.log("Usuário autenticado:", userId);
+            } else {
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        userId = auth.currentUser.uid;
+                    } else {
+                        await signInAnonymously(auth);
+                        userId = auth.currentUser.uid;
+                    }
+                    console.log("Usuário logado (anônimo ou com token):", userId);
+                } catch (error) {
+                    console.error("Erro na autenticação Firebase:", error);
+                    document.getElementById('errorMessage').innerText = 'Erro ao inicializar o Firebase. Tente recarregar a página.';
+                }
+            }
+        });
+
+        // Mapeamento de gêneros e suas características para dar contexto à IA
+        const literaryGenres = {
+            "Ficção Científica": `futuro, tecnologia avançada, espaço, alienígenas, distopia, utopia, viagem no tempo, robôs, inteligência artificial, exploração, ciência, inovações, consequências sociais e éticas da tecnologia`,
+            "Fantasia": `magia, reinos medievais, criaturas míticas, heróis, vilões, profecias, aventuras épicas, sistemas de magia, mundos imaginários, elementos sobrenaturais, batalhas do bem contra o mal`,
+            "Mistério": `crime, investigação, detetive, segredos, suspense, pistas, reviravoltas, solução de um enigma, desaparecimentos, conspirações, atmosfera de intriga, revelações chocantes`,
+            "Terror": `medo, sobrenatural, monstros, horror psicológico, suspense, gore, jumpscares, atmosfera sombria, eventos inexplicáveis, possessão, maldição, criaturas aterrorizantes, dilemas morais`,
+            "Romance": `amor, relacionamentos, paixão, conflitos emocionais, desenvolvimento de personagens, superação, clímax romântico, finais felizes ou agridoce, atração, conexão, dilemas pessoais`,
+            "Thriller": `tensão, suspense, perseguição, reviravoltas, ação, perigo iminente, conspirações, espionagem, ritmo acelerado, adrenalina, dilemas de vida ou morte, elementos psicológicos`,
+            "Aventura": `jornada, descoberta, exploração, perigos, tesouros, desafios, superação, terras distantes, companheiros, missões, heroísmo, grandes feitos, obstáculos físicos e emocionais`,
+            "Ficção Histórica": `período específico da história, personagens reais ou fictícios em eventos reais, costumes da época, pesquisa detalhada, recriação de atmosferas, impactos de eventos históricos na vida dos personagens`,
+            "Distopia": `sociedade opressora, controle governamental, perda de liberdade, futuro sombrio, rebelião, vigilância, manipulação, desigualdade, degradação ambiental, crítica social, busca por esperança`,
+            "Cyberpunk": `alta tecnologia e baixa qualidade de vida, megacorporações, hackers, ciborgues, realidade virtual, cidades sombrias e chuvosas, neon, anarquia, implantes cibernéticos, inteligência artificial`,
+            "Steampunk": `vapor, engrenagens, vitoriano, invenções, dirigíveis, máquinas a vapor, aventura, romance, exploração, sociedade industrial, elementos retrofuturistas, gadgets peculiares`,
+            "Biopunk": `engenharia genética, biotecnologia, mutações, organismos vivos, bioética, manipulação do DNA, transumanismo, distopia biológica, experimentos, consequências da alteração da vida`,
+            "Solarpunk": `futuro otimista, tecnologia sustentável, energia renovável, harmonia com a natureza, comunidades resilientes, arquitetura verde, ativismo, ecologia, soluções para problemas climáticos`,
+            "Space Opera": `grandes impérios galácticos, batalhas espaciais, viagens interestelares, culturas alienígenas, política galáctica, heróis cósmicos, vastos cenários, exploração de novos mundos`,
+            "Cli-Fi (Climate Fiction)": `mudanças climáticas, desastres ambientais, aquecimento global, colapso ecológico, sobrevivência, adaptação, consequências das ações humanas no planeta, busca por soluções`,
+            "Dieselpunk": `tecnologia da era da máquina a diesel (1920-1940), estética art déco, motores, gângsteres, grandes máquinas de guerra, atmosfera de pós-guerra, retrofuturismo industrial`,
+            "Atompunk": `estilo visual e temático da Guerra Fria (1945-1965), otimismo nuclear, paranoia de invasão alienígena, estética da era atômica, design de foguetes, carros voadores, bunkers`,
+            "Stonepunk": `idade da pedra, tecnologia primitiva baseada em pedra, osso e madeira, dinossauros, tribos, caça, sobrevivência, elementos fantásticos, desenvolvimento de ferramentas básicas`,
+            "Splatterpunk": `horror extremo, violência gráfica, gore explícito, temas tabus, choque, subversão de valores, brutalidade, exploração do lado mais sombrio da natureza humana`,
+            "Hopepunk": `otimismo, bondade, cooperação, resiliência, esforço em face da adversidade, comunidade, crença na capacidade humana de fazer o bem, luta por um futuro melhor, não cinismo`,
+            "Mythpunk": `mitos, folclore, contos de fadas, subversão, desconstrução, reinterpretação de histórias clássicas, elementos mágicos em contextos modernos, empoderamento, questionamento de arquétipos`,
+            "New Weird": `elementos de ficção científica, fantasia e horror, desafia classificações de gênero, criaturas bizarras, ambientes surrealistas, temáticas sombrias e subversivas, foco no grotesco e no estranho`,
+            "Noblebright": `fantasia otimista, heróis virtuosos, bem contra o mal com clareza moral, triunfo da virtude, esperança, altruísmo, foco na luz e na bondade, finais felizes merecidos`,
+            "Fantasia Sombria": `elementos de fantasia com tons sombrios, moralidade ambígua, anti-heróis, violência, horror, temas maduros, perda de esperança, reinos em decadência, criaturas malignas, sacrifícios`,
+            "Fantasia Urbana": `magia, cidade grande, seres míticos escondidos entre humanos, mistério, detetives sobrenaturais, sociedades secretas, conflito entre o mundo mágico e o mundano`,
+            "Fantasia Épica": `grandes escalas, múltiplos pontos de vista, vastos mundos, complexas tramas políticas, guerras, profecias, destinos, muitos personagens, longas sagas, construção de mundo detalhada`,
+            "Baixa Fantasia": `elementos mágicos discretos, mundo real, foco em personagens comuns, a magia é sutil ou rara, mistério, humor, cotidiano com toques de magia, menos foco em grandiosas aventuras`,
+            "Alta Fantasia": `mundos totalmente imaginários, regras de magia bem definidas, confronto claro entre o bem e o mal, heróis, grandes batalhas, jornadas épicas, culturas e línguas próprias, mitologia`,
+            "Magia Sombria": `magia com custo moral ou físico, necromancia, maldições, pactos demoníacos, corrupção, rituais proibidos, busca por poder a qualquer custo, consequências nefastas do uso de magia`,
+            "Espada e Feitiçaria": `aventuras focadas em um herói solitário, bárbaros, mercenários, calabouços, monstros, bruxos malignos, tesouros, ritmo rápido, ação, menos foco em grandes políticas ou filosofias`,
+            "Medieval": `castelos, reinos, cavaleiros, camponeses, feudos, guerras feudais, monarquia, elementos de fantasia ou realismo, vida na Idade Média, honra, traição, batalhas com espadas`,
+            "Gótico": `atmosfera sombria e melancólica, castelos assombrados, mistério, romance trágico, elementos sobrenaturais, segredos familiares, loucura, claustrofobia, fatalismo, ruínas, decadência`,
+            "Pós-Apocalíptico": `mundo devastado, sobrevivência, recursos escassos, comunidades isoladas, perigos, reconstrução, mutantes, colapso da civilização, doenças, radiação, busca por esperança ou um novo começo`,
+            "Conto de Fadas": `moralidade clara, elementos mágicos, princesas, príncipes, bruxas, florestas encantadas, animais falantes, lições de vida, arquétipos clássicos, enredo simples e direto`,
+            "Sátira": `crítica social através do humor, ironia, exagero, ridicularização de costumes, política, ou características humanas, com o objetivo de provocar reflexão ou mudança`,
+            "Realismo Mágico": `elementos fantásticos inseridos em um cenário realista de forma natural e sem explicação, personagens aceitam o inexplicável como parte da realidade, metáforas, simbolismo`,
+            "Ficção Especulativa": `guarda-chuva para gêneros que exploram "e se?" sobre o futuro, tecnologia, sociedade, ou a natureza humana, incluindo ficção científica, fantasia, horror, distopia, e utopia`,
+            "Horror Cósmico": `entidades indescritíveis, insignificância humana, loucura, pavor do desconhecido, universos hostis, segredos antigos, perda da sanidade, Lovecraft, medo do incompreensível`,
+            "Horror Corporal": `deformação, mutilação, doença, infestação do corpo, exploração do grotesco e do físico, nojo, desconforto, limites do corpo humano, transformações horríveis`,
+            "Horror Psicológico": `foco na mente, paranoia, alucinações, trauma, loucura, manipulação, suspense, desestabilização da percepção da realidade, menos gore, mais terror interno`,
+            "Ficção Detetivesca": `investigação de um crime, detetive brilhante, pistas, interrogação, dedução lógica, revelação do culpado no final, reviravoltas, suspense, geralmente ambientada em cidades`,
+            "True Crime": `recontagem de crimes reais, investigação jornalística, análise forense, perfil de criminosos, vítimas, impacto social, elementos de mistério e suspense da vida real`,
+            "Hardboiled": `subgênero da ficção detetivesca, detetive cínico e durão, submundo do crime, corrupção, violência explícita, diálogos secos, ambiente urbano sombrio, moralidade ambígua`,
+            "Noir": `atmosfera sombria e fatalista, personagens moralmente ambíguos, femme fatale, corrupção, injustiça, desespero, falta de esperança, estilo visual marcante (no cinema)`,
+            "Suspense Psicológico": `tensão baseada na mente dos personagens, manipulação, mistério, paranoia, segredos, obsessão, reviravoltas focadas na psique, geralmente sem muita ação física`,
+            "Legal Thriller": `suspense focado no sistema jurídico, advogados, promotores, julgamentos, intrigas nos tribunais, investigação legal, busca por justiça ou verdades ocultas`,
+            "Medical Thriller": `suspense no ambiente médico, doenças, pandemias, experimentos, ética médica, hospitais, cientistas, conspirações em laboratórios, questões de vida e morte`,
+            "Techno-Thriller": `mistura de suspense com tecnologia avançada, armas, espionagem, guerra tecnológica, inovações perigosas, ameaças cibernéticas, controle de dados, consequências da tecnologia`,
+            "Erotic Romance": `foco explícito na atração sexual e nas relações físicas entre personagens, além do desenvolvimento emocional do relacionamento, exploração da sexualidade`,
+            "Historical Romance": `romance ambientado em um período histórico específico, com a época influenciando o desenvolvimento do relacionamento, figurino, costumes, e eventos históricos`,
+            "Paranormal Romance": `romance com elementos sobrenaturais, como vampiros, lobisomens, anjos, demônios, ou poderes psíquicos, onde o romance se desenvolve entre seres de diferentes mundos`,
+            "Contemporary Romance": `romance ambientado na era atual, com problemas e situações cotidianas, foco no desenvolvimento de um relacionamento realista, humor, drama, dilemas modernos`,
+            "Young Adult (YA)": `literatura para adolescentes (12-18 anos), temas como amadurecimento, identidade, primeiros amores, amizades, desafios escolares e familiares, aventuras, fantasia ou realismo`,
+            "New Adult (NA)": `literatura para jovens adultos (18-25 anos), temas de transição para a vida adulta, faculdade, primeiros empregos, relacionamentos mais maduros, autodescoberta`,
+            "Middle Grade (MG)": `literatura para crianças de 8-12 anos, temas de amizade, família, escola, aventura, mistério, fantasia leve, lições de vida, linguagem acessível`,
+            "Children's Literature": `literatura para crianças pequenas, foco em imaginação, aprendizado, valores, ilustrações, histórias simples, personagens animais ou fantasiosos`,
+            "Fan Fiction": `histórias criadas por fãs usando personagens e universos de obras existentes, sem fins lucrativos, exploração de novas tramas, casais, ou perspectivas`,
+            "Slam Poetry": `poesia performática, oralidade, ritmo, rima livre, temas sociais e políticos, spoken word, performances em palco, engajamento da audiência`,
+            "Novela Gráfica": `história contada através de quadrinhos, geralmente mais longas e complexas que um gibi tradicional, com temas mais maduros, arte elaborada, narrativa visual e textual`,
+            "Quadrinhos": `história contada em sequência de quadros e balões, com texto e imagens, geralmente publicadas em fascículos ou álbuns, super-heróis, humor, aventura, diversos gêneros`,
+            "Biografia": `relato da vida de uma pessoa real, escrita por outra pessoa, pesquisa detalhada, eventos importantes, impacto, legado, contextualização histórica`,
+            "Autobiografia": `relato da vida de uma pessoa, escrita por ela mesma, perspectiva pessoal, reflexões, experiências, crescimento, eventos significativos da própria vida`,
+            "Memórias": `foco em um período específico da vida do autor, ou um conjunto de experiências, reflexões pessoais, eventos emocionais, menos abrangente que uma autobiografia`,
+            "Não Ficção Criativa": `uso de técnicas literárias (narrativa, diálogo, metáfora) para apresentar fatos, pesquisa, e informações de não ficção de forma envolvente e pessoal`,
+            "Jornalismo Literário": `jornalismo que utiliza técnicas literárias para narrar reportagens, investigações aprofundadas, grande profundidade, imersão, estilo autoral, busca pela verdade`,
+            "Ensaio": `texto que explora um tema ou argumento, reflexão pessoal, análise, argumentação, sem a necessidade de esgotar o assunto, estilo flexível, pode ser formal ou informal`,
+            "Crítica": `análise e avaliação de obras de arte, literatura, cinema, música, etc., com base em critérios estéticos, teóricos, ou históricos, com o objetivo de interpretar e julgar`,
+            "Guia": `livro ou texto que oferece instruções, dicas, ou informações práticas sobre um tópico específico, como viagens, culinária, hobbies, autoajuda, etc.`,
+            "Livro Didático": `material de ensino para estudantes, organizado por disciplina, com exercícios, explicações, ilustrações, para apoiar o aprendizado em um currículo`,
+            "Livro de Referência": `obra que contém informações organizadas para consulta rápida, como dicionários, enciclopédias, atlas, manuais, com o objetivo de fornecer dados específicos`,
+            "Diário": `registro pessoal e cronológico de eventos, pensamentos, e sentimentos, para uso privado do autor, pode ser fictício ou real`,
+            "Epistolar": `narrativa contada através de cartas, e-mails, ou outros documentos, revelando a história por meio da correspondência entre os personagens`,
+            "Stream of Consciousness": `técnica narrativa que tenta imitar o fluxo de pensamentos da mente humana, sem pontuação tradicional ou ordem lógica, digressões, associações livres`,
+            "Metaficção": `ficção que reflete sobre si mesma como ficção, quebra da quarta parede, o autor ou os personagens sabem que estão em uma história, explora a natureza da narrativa`,
+            "Absurdo": `literatura que explora a falta de sentido ou propósito na existência humana, situações ilógicas, nonsenso, humor negro, existencialismo, alienação`,
+            "Realismo Sujo": `estilo minimalista, foca em personagens marginalizados, linguagem simples e direta, temas de desilusão, pobreza, vícios, falta de esperança, sem sentimentalismo`,
+            "Künstlerroman": `romance de formação que foca no desenvolvimento de um artista, sua jornada para encontrar sua voz criativa, desafios, inspirações, e autoaceitação como artista`,
+            "Bildungsroman": `romance de formação que foca no crescimento moral e psicológico do protagonista desde a infância até a idade adulta, suas experiências, aprendizados, e amadurecimento`,
+            "Picaresco": `narrativa em primeira pessoa de um pícaro (anti-herói astuto e marginalizado), que viaja e se envolve em diversas aventuras e situações cômicas ou perigosas, crítica social`,
+            "Utopian/Dystopian": `gêneros que exploram sociedades ideais (utopia) ou sociedades falhas e opressoras (distopia), geralmente com crítica social e especulação sobre o futuro`,
+            "Slice of Life": `foco em momentos cotidianos, detalhes da vida diária, sem grandes eventos ou clímax, explora a beleza ou a complexidade do comum, desenvolvimento de personagens através de rotinas`,
+            "Pastoral": `retrata a vida no campo de forma idealizada, harmonia com a natureza, simplicidade, inocência, bucolismo, frequentemente com elementos de romance ou fantasia`,
+        };
+
+        // Função para gerar uma ideia de história
+        async function generateStoryIdea() {
+            const genre = document.getElementById('genre').value;
+            const keywords = document.getElementById('keywords').value;
+            const additionalPrompt = document.getElementById('prompt').value;
+            const outputDiv = document.getElementById('output');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const errorMessage = document.getElementById('errorMessage');
+
+            outputDiv.innerHTML = ''; // Limpa o output anterior
+            errorMessage.innerText = ''; // Limpa mensagens de erro anteriores
+            loadingIndicator.style.display = 'block'; // Mostra o indicador de carregamento
+
+            if (!genre && !keywords && !additionalPrompt) {
+                errorMessage.innerText = 'Por favor, selecione um gênero, digite palavras-chave ou adicione um prompt adicional.';
+                loadingIndicator.style.display = 'none';
+                return;
+            }
+
+            let promptText = `Gere uma ideia de história original e intrigante.`;
+
+            // Adiciona informações sobre o gênero
+            if (genre) {
+                promptText += ` O gênero principal é "${genre}".`;
+                if (literaryGenres[genre]) {
+                    promptText += ` Considere as características: ${literaryGenres[genre]}.`;
+                }
+            }
+
+            // Adiciona palavras-chave
+            if (keywords) {
+                promptText += ` As palavras-chave importantes para a história são: ${keywords}.`;
+            }
+
+            // Adiciona o prompt adicional do usuário
+            if (additionalPrompt) {
+                promptText += ` Considere também o seguinte prompt adicional: "${additionalPrompt}".`;
+            }
+
+            promptText += ` A ideia deve incluir: um título criativo, um breve resumo do enredo (1-2 parágrafos), os personagens principais, o conflito central e o cenário. Use um tom criativo e envolvente.`;
+
+            try {
+                // Configuração para a chamada da API do Gemini
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: promptText }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // API Key, Canvas preencherá em tempo de execução
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Erro da API: ${response.status} - ${errorData.error.message || 'Erro desconhecido'}`);
+                }
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const generatedText = result.candidates[0].content.parts[0].text;
+                    outputDiv.innerHTML = `
+                        <h2 class="text-xl font-semibold mb-3">Sua Ideia de História:</h2>
+                        <p>${generatedText.replace(/\n/g, '<br>')}</p>
+                    `;
+
+                    // Salva a ideia gerada no Firestore (se o usuário estiver autenticado)
+                    if (userId) {
+                        const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/generated_ideas`, new Date().toISOString());
+                        await setDoc(userDocRef, {
+                            genre: genre,
+                            keywords: keywords,
+                            additionalPrompt: additionalPrompt,
+                            generatedIdea: generatedText,
+                            timestamp: new Date()
+                        });
+                        console.log("Ideia salva no Firestore!");
+                    }
+                } else {
+                    outputDiv.innerHTML = '<p class="text-red-500">Não foi possível gerar uma ideia. Tente novamente.</p>';
+                    console.log("Resposta inesperada da API:", result);
+                }
+            } catch (error) {
+                console.error("Erro ao gerar ideia de história:", error);
+                errorMessage.innerText = `Erro ao gerar ideia: ${error.message}. Por favor, tente novamente.`;
+            } finally {
+                loadingIndicator.style.display = 'none'; // Esconde o indicador de carregamento
+            }
+        }
+
+        // Adiciona o evento de clique ao botão
+        document.getElementById('generateButton').addEventListener('click', generateStoryIdea);
+    </script>
+</body>
+</html>
